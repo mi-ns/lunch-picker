@@ -1,0 +1,3254 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>인하대 후문 점심 뽑기</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card: rgba(255, 255, 255, 0.92);
+      --ink: #111827;
+      --muted: #64748b;
+      --line: #e2e8f0;
+      --accent: #6366f1;
+      --accent-dark: #4f46e5;
+      --accent-soft: #eef2ff;
+      --green: #10b981;
+      --black: #111827;
+      --shadow: 0 26px 80px rgba(15, 23, 42, 0.13);
+      --radius: 32px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", system-ui, -apple-system, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% 12%, rgba(99, 102, 241, 0.16), transparent 30%),
+        radial-gradient(circle at 88% 14%, rgba(20, 184, 166, 0.14), transparent 28%),
+        radial-gradient(circle at 50% 95%, rgba(244, 114, 182, 0.10), transparent 34%),
+        linear-gradient(135deg, #ffffff 0%, var(--bg) 58%, #eef2ff 100%);
+      display: grid;
+      place-items: center;
+      padding: 26px;
+    }
+
+    body.admin-page {
+      display: block;
+      padding: 34px;
+    }
+
+    button,
+    select,
+    textarea,
+    input {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    .user-app {
+      width: min(560px, 100%);
+    }
+
+    .picker-card {
+      position: relative;
+      overflow: hidden;
+      background: var(--card);
+      border: 1px solid rgba(229, 220, 207, 0.9);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      padding: clamp(24px, 5vw, 42px);
+    }
+
+    .picker-card::before {
+      content: "";
+      position: absolute;
+      width: 210px;
+      height: 210px;
+      right: -96px;
+      top: -105px;
+      border-radius: 999px;
+      background: rgba(99, 102, 241, 0.10);
+    }
+
+    .picker-card::after {
+      content: "";
+      position: absolute;
+      width: 150px;
+      height: 150px;
+      left: -82px;
+      bottom: -82px;
+      border-radius: 999px;
+      background: rgba(20, 184, 166, 0.11);
+    }
+
+    .header {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      margin-bottom: 26px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 13px;
+      margin-bottom: 18px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      border: 1px solid #c7d2fe;
+      color: #4338ca;
+      font-size: 13px;
+      font-weight: 850;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(32px, 8vw, 52px);
+      line-height: 1.03;
+      letter-spacing: -0.07em;
+    }
+
+    .subtitle {
+      max-width: 390px;
+      margin: 13px auto 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.6;
+      word-break: keep-all;
+    }
+
+    .result-box {
+      position: relative;
+      z-index: 1;
+      min-height: 238px;
+      display: grid;
+      place-items: center;
+      border-radius: 28px;
+      background:
+        radial-gradient(circle at 82% 8%, rgba(99, 102, 241, .30), transparent 28%),
+        radial-gradient(circle at 12% 92%, rgba(20, 184, 166, .20), transparent 32%),
+        linear-gradient(145deg, #0f172a, #111827 52%, #1e1b4b);
+      color: white;
+      padding: 28px 22px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+
+    .result-box::before {
+      content: "";
+      position: absolute;
+      inset: -120px;
+      background: conic-gradient(from 90deg, transparent 0deg, rgba(255,255,255,.11) 46deg, transparent 92deg);
+      animation: rotateLight 7s linear infinite;
+    }
+
+    @keyframes rotateLight {
+      to { transform: rotate(360deg); }
+    }
+
+    .result-inner {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      text-align: center;
+    }
+
+    .placeholder {
+      font-size: clamp(34px, 9vw, 58px);
+      line-height: 1.05;
+      font-weight: 950;
+      letter-spacing: -0.07em;
+      word-break: keep-all;
+    }
+
+    .placeholder-sub {
+      margin-top: 13px;
+      color: rgba(255, 255, 255, .66);
+      font-size: 14px;
+      font-weight: 750;
+      word-break: keep-all;
+    }
+
+    .single-card {
+      display: grid;
+      gap: 12px;
+      text-align: left;
+    }
+
+    .restaurant-name {
+      font-size: clamp(32px, 7vw, 50px);
+      line-height: 1.08;
+      font-weight: 950;
+      letter-spacing: -0.065em;
+      text-align: center;
+      word-break: keep-all;
+    }
+
+    .restaurant-meta {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 2px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 11px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .10);
+      border: 1px solid rgba(255, 255, 255, .13);
+      color: rgba(255, 255, 255, .82);
+      font-size: 12px;
+      font-weight: 850;
+      word-break: keep-all;
+    }
+
+    .menu-line {
+      margin-top: 6px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, .08);
+      border: 1px solid rgba(255, 255, 255, .10);
+      color: rgba(255, 255, 255, .78);
+      text-align: center;
+      line-height: 1.5;
+      font-size: 15px;
+      font-weight: 800;
+      word-break: keep-all;
+    }
+
+    .multi-list {
+      display: grid;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .multi-item {
+      display: grid;
+      grid-template-columns: 30px 1fr;
+      gap: 10px;
+      align-items: start;
+      padding: 12px 14px;
+      border-radius: 17px;
+      background: rgba(255,255,255,.09);
+      border: 1px solid rgba(255,255,255,.10);
+      text-align: left;
+      animation: resultEnter .24s ease both;
+    }
+
+    .index {
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      background: rgba(99, 102, 241, .96);
+      font-size: 13px;
+      font-weight: 950;
+    }
+
+    .multi-name {
+      font-size: 19px;
+      line-height: 1.2;
+      font-weight: 950;
+      letter-spacing: -0.04em;
+      word-break: keep-all;
+    }
+
+    .multi-detail {
+      margin-top: 4px;
+      color: rgba(255,255,255,.68);
+      font-size: 12px;
+      line-height: 1.45;
+      font-weight: 750;
+      word-break: keep-all;
+    }
+
+    @keyframes resultEnter {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .rolling .placeholder,
+    .rolling .single-card,
+    .rolling .multi-item {
+      animation: shake .08s infinite alternate;
+    }
+
+    @keyframes shake {
+      from { transform: translateY(-1px) rotate(-.2deg); }
+      to { transform: translateY(1px) rotate(.2deg); }
+    }
+
+    .controls {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .label {
+      color: #4d463e;
+      font-size: 14px;
+      font-weight: 850;
+      white-space: nowrap;
+    }
+
+    .count-select {
+      width: 104px;
+      height: 42px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: white;
+      padding: 0 12px;
+      color: var(--ink);
+      font-weight: 850;
+      outline: none;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .chip {
+      padding: 9px 13px;
+      border-radius: 999px;
+      background: white;
+      border: 1px solid var(--line);
+      color: #5f574f;
+      font-size: 13px;
+      font-weight: 850;
+      transition: transform .14s ease, background .14s ease, color .14s ease, border-color .14s ease;
+    }
+
+    .chip:hover {
+      transform: translateY(-1px);
+    }
+
+    .chip.active {
+      background: var(--black);
+      border-color: var(--black);
+      color: white;
+    }
+
+    .chip.all {
+      color: var(--accent-dark);
+      background: var(--accent-soft);
+      border-color: #c7d2fe;
+    }
+
+    .chip.all.active {
+      color: white;
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .pick-button {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      height: 62px;
+      border-radius: 21px;
+      background: var(--accent);
+      color: white;
+      font-size: 18px;
+      font-weight: 950;
+      letter-spacing: -0.03em;
+      box-shadow: 0 18px 34px rgba(255, 107, 53, .28);
+      transition: transform .14s ease, box-shadow .14s ease, background .14s ease;
+    }
+
+    .pick-button:hover {
+      transform: translateY(-2px);
+      background: var(--accent-dark);
+      box-shadow: 0 22px 40px rgba(255, 107, 53, .34);
+    }
+
+    .pick-button:active {
+      transform: translateY(1px);
+    }
+
+    .admin-hint {
+      position: relative;
+      z-index: 1;
+      margin-top: 18px;
+      text-align: center;
+      color: #9b948c;
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .admin-hint code {
+      background: rgba(255,255,255,.72);
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 2px 5px;
+      color: #6a5d51;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      transform: translateX(-50%) translateY(100px);
+      background: rgba(21,21,21,.94);
+      color: white;
+      padding: 12px 17px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 850;
+      box-shadow: 0 18px 50px rgba(0,0,0,.20);
+      transition: transform .22s ease;
+      z-index: 100;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .confetti {
+      position: fixed;
+      top: -18px;
+      width: 8px;
+      height: 13px;
+      border-radius: 3px;
+      pointer-events: none;
+      animation: fall linear forwards;
+      z-index: 80;
+    }
+
+    @keyframes fall {
+      to { transform: translateY(105vh) rotate(720deg); opacity: .22; }
+    }
+
+    /* Admin */
+    .admin-layout {
+      width: min(1120px, 100%);
+      margin: 0 auto;
+      display: none;
+    }
+
+    body.admin-page .admin-layout {
+      display: block;
+    }
+
+    body.admin-page .user-app {
+      display: none;
+    }
+
+    .admin-header {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 22px;
+    }
+
+    .admin-title h1 {
+      font-size: clamp(34px, 5vw, 56px);
+    }
+
+    .admin-title p {
+      margin: 12px 0 0;
+      color: var(--muted);
+      line-height: 1.6;
+      word-break: keep-all;
+    }
+
+    .view-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 46px;
+      padding: 0 18px;
+      border-radius: 999px;
+      text-decoration: none;
+      color: white;
+      background: var(--black);
+      font-size: 14px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .admin-grid {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .admin-card {
+      background: rgba(255,253,248,.9);
+      border: 1px solid rgba(229, 220, 207, .9);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      padding: 24px;
+      backdrop-filter: blur(18px);
+    }
+
+    .admin-card h2 {
+      margin: 0 0 14px;
+      font-size: 20px;
+      letter-spacing: -0.04em;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 560px;
+      resize: vertical;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: white;
+      padding: 16px;
+      color: #3a342e;
+      line-height: 1.58;
+      outline: none;
+      font-size: 14px;
+    }
+
+    textarea:focus {
+      border-color: #818cf8;
+      box-shadow: 0 0 0 4px rgba(255, 107, 53, .12);
+    }
+
+    .restaurant-table-wrap {
+      width: 100%;
+      max-height: 610px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #fffaf3;
+    }
+
+    .restaurant-table {
+      width: 100%;
+      min-width: 760px;
+      border-collapse: separate;
+      border-spacing: 0;
+      table-layout: fixed;
+    }
+
+    .restaurant-table col:nth-child(1) { width: 24%; }
+    .restaurant-table col:nth-child(2) { width: 18%; }
+    .restaurant-table col:nth-child(3) { width: 35%; }
+    .restaurant-table col:nth-child(4) { width: 12%; }
+    .restaurant-table col:nth-child(5) { width: 11%; }
+
+    .restaurant-table th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      padding: 12px 10px;
+      background: #f3ede3;
+      border-bottom: 1px solid #e3d8ca;
+      color: #62574c;
+      font-size: 12px;
+      font-weight: 900;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .restaurant-table th:first-child {
+      padding-left: 14px;
+    }
+
+    .restaurant-table td {
+      padding: 9px 8px;
+      border-bottom: 1px solid rgba(223, 214, 201, .72);
+      vertical-align: middle;
+    }
+
+    .restaurant-table tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .restaurant-table td:first-child {
+      padding-left: 14px;
+    }
+
+    .restaurant-cell-input,
+    .restaurant-priority-select {
+      width: 100%;
+      height: 38px;
+      border: 1px solid transparent;
+      border-radius: 0;
+      background: transparent;
+      color: var(--ink);
+      outline: none;
+      padding: 0 10px;
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    .restaurant-cell-input:focus,
+    .restaurant-priority-select:focus {
+      border-color: transparent;
+      border-bottom-color: #e54835;
+      background: rgba(255,255,255,.42);
+      box-shadow: none;
+    }
+
+    .restaurant-priority-select {
+      padding-right: 6px;
+      font-weight: 900;
+    }
+
+    .restaurant-cell-input::placeholder {
+      color: rgba(107, 102, 95, .48);
+    }
+
+    .row-delete-button {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      background: transparent;
+      color: #9b2f24;
+      border: 1px solid transparent;
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .row-delete-button:hover {
+      background: #fff0ec;
+      border-color: #f3c5bd;
+    }
+
+    .admin-toolbar {
+      display: flex;
+      justify-content: flex-end;
+      margin: 0 0 12px;
+    }
+
+    .admin-note {
+      margin: 10px 0 16px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .admin-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .admin-button {
+      height: 48px;
+      border-radius: 16px;
+      font-weight: 950;
+      background: white;
+      color: #3c3834;
+      border: 1px solid var(--line);
+    }
+
+    .admin-button.primary {
+      background: var(--green);
+      border-color: var(--green);
+      color: white;
+    }
+
+    .admin-button.danger {
+      color: #b42318;
+    }
+
+    .admin-button.secondary {
+      width: auto;
+      height: 42px;
+      padding: 0 14px;
+      border-radius: 13px;
+      background: #171717;
+      color: white;
+      font-size: 13px;
+    }
+
+    .stat-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .stat {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 14px;
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      font-size: 14px;
+    }
+
+    .stat b {
+      font-size: 18px;
+    }
+
+    .type-list {
+      margin-top: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+
+    .setting-box {
+      margin-top: 18px;
+      padding: 16px;
+      border-radius: 20px;
+      background: white;
+      border: 1px solid var(--line);
+    }
+
+    .setting-title {
+      margin: 0 0 8px;
+      font-size: 15px;
+      font-weight: 950;
+      letter-spacing: -0.03em;
+    }
+
+    .setting-desc {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+      word-break: keep-all;
+    }
+
+    .setting-row {
+      display: grid;
+      grid-template-columns: 1fr 86px;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .setting-row input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .boost-input {
+      width: 86px;
+      height: 40px;
+      border-radius: 13px;
+      border: 1px solid var(--line);
+      padding: 0 10px;
+      text-align: center;
+      font-weight: 900;
+      outline: none;
+      background: #fffdf8;
+      color: var(--ink);
+    }
+
+
+    .admin-code-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .admin-code-input {
+      width: 100%;
+      height: 42px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      padding: 0 12px;
+      outline: none;
+      font-weight: 850;
+      background: #fffdf8;
+      color: var(--ink);
+    }
+
+    .admin-code-button {
+      height: 42px;
+      padding: 0 14px;
+      border-radius: 14px;
+      background: var(--black);
+      color: white;
+      font-size: 13px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .admin-url-preview {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: #fbf7f0;
+      border: 1px solid #eee3d5;
+      color: #5a5148;
+      font-size: 12px;
+      line-height: 1.45;
+      word-break: break-all;
+      font-weight: 750;
+    }
+
+    .preview-table {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+      font-size: 12px;
+      color: #514a43;
+    }
+
+    .preview-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: #fbf7f0;
+      border: 1px solid #eee3d5;
+      font-weight: 800;
+    }
+
+    .type-list span {
+      padding: 8px 11px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      border: 1px solid #c7d2fe;
+      color: #4338ca;
+      font-size: 12px;
+      font-weight: 850;
+    }
+
+
+    .result-box.final-reveal {
+      animation: finalPop .46s cubic-bezier(.18, 1.45, .35, 1) both;
+    }
+
+    @keyframes finalPop {
+      0% { transform: scale(.982); box-shadow: 0 0 0 rgba(99,102,241,0); }
+      45% { transform: scale(1.018); box-shadow: 0 0 0 8px rgba(99,102,241,.16); }
+      100% { transform: scale(1); box-shadow: none; }
+    }
+
+    .fakeout-wrap {
+      width: 100%;
+      display: grid;
+      gap: 13px;
+      text-align: center;
+    }
+
+    .fakeout-label {
+      width: fit-content;
+      margin: 0 auto;
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.12);
+      color: rgba(255,255,255,.74);
+      font-size: 12px;
+      font-weight: 950;
+      letter-spacing: -.01em;
+    }
+
+    .fakeout-label.hot {
+      background: rgba(99,102,241,.96);
+      border-color: rgba(99,102,241,.96);
+      color: white;
+    }
+
+    .fakeout-name {
+      min-height: 68px;
+      display: grid;
+      place-items: center;
+      font-size: clamp(31px, 8vw, 56px);
+      line-height: 1.06;
+      font-weight: 950;
+      letter-spacing: -0.07em;
+      word-break: keep-all;
+      text-shadow: 0 8px 30px rgba(0,0,0,.38);
+    }
+
+    .fakeout-name.rolling-name {
+      animation: tenseBlink .11s infinite alternate;
+    }
+
+    .fakeout-name.locked {
+      animation: softLock .38s cubic-bezier(.18, 1.35, .35, 1) both;
+    }
+
+    .fakeout-name.swapped {
+      animation: swapShock .30s ease both;
+    }
+
+    @keyframes tenseBlink {
+      from { opacity: .72; transform: translateY(-1px) scale(.994); filter: blur(.25px); }
+      to { opacity: 1; transform: translateY(1px) scale(1.004); filter: blur(0); }
+    }
+
+    @keyframes softLock {
+      from { transform: scale(.94); opacity: .35; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes swapShock {
+      0% { transform: translateX(0) scale(1); opacity: 1; }
+      32% { transform: translateX(-10px) rotate(-1.2deg); opacity: .35; }
+      66% { transform: translateX(10px) rotate(1.2deg); opacity: .55; }
+      100% { transform: translateX(0) scale(1); opacity: 1; }
+    }
+
+    .fakeout-sub {
+      color: rgba(255,255,255,.70);
+      font-size: 14px;
+      line-height: 1.45;
+      font-weight: 800;
+      word-break: keep-all;
+    }
+
+    .odds-row {
+      width: min(330px, 100%);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      margin: 0 auto;
+    }
+
+    .odds-track {
+      height: 9px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.12);
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.08);
+    }
+
+    .odds-bar {
+      height: 100%;
+      width: var(--progress, 0%);
+      border-radius: 999px;
+      background: linear-gradient(90deg, #6366f1, #14b8a6, #f472b6);
+      transition: width .15s ease;
+    }
+
+    .odds-text {
+      min-width: 46px;
+      text-align: right;
+      color: rgba(255,255,255,.72);
+      font-size: 12px;
+      font-weight: 950;
+    }
+
+    .candidate-strip {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 7px;
+      margin-top: 1px;
+    }
+
+    .candidate-chip {
+      padding: 7px 9px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.09);
+      border: 1px solid rgba(255,255,255,.11);
+      color: rgba(255,255,255,.70);
+      font-size: 11px;
+      font-weight: 850;
+    }
+
+    .candidate-chip.active {
+      background: rgba(99,102,241,.95);
+      border-color: rgba(99,102,241,.95);
+      color: white;
+    }
+
+    .final-label {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      width: fit-content;
+      margin: 0 auto 10px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: rgba(99,102,241,.95);
+      color: white;
+      font-size: 12px;
+      font-weight: 950;
+      letter-spacing: -.01em;
+    }
+
+
+    .slot-machine {
+      width: 100%;
+      display: grid;
+      gap: 12px;
+    }
+
+    .slot-guide {
+      width: fit-content;
+      margin: 0 auto 4px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.12);
+      color: rgba(255,255,255,.76);
+      font-size: 12px;
+      font-weight: 950;
+      letter-spacing: -.01em;
+    }
+
+    .slot-window {
+      position: relative;
+      height: 74px;
+      border-radius: 22px;
+      overflow: hidden;
+      background: rgba(255,255,255,.10);
+      border: 0;
+      box-shadow:
+        inset 0 18px 28px rgba(15,23,42,.18),
+        inset 0 -18px 28px rgba(15,23,42,.18),
+        0 14px 34px rgba(15,23,42,.12);
+    }
+
+    .slot-window::before,
+    .slot-window::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 22px;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .slot-window::before {
+      top: 0;
+      background: linear-gradient(180deg, rgba(15,23,42,.86), transparent);
+    }
+
+    .slot-window::after {
+      bottom: 0;
+      background: linear-gradient(0deg, rgba(15,23,42,.86), transparent);
+    }
+
+    .slot-center-line {
+      display: none;
+    }
+
+    .slot-track {
+      position: relative;
+      z-index: 2;
+      will-change: transform;
+      transform: translateY(0);
+    }
+
+    .slot-item {
+      height: 74px;
+      display: grid;
+      place-items: center;
+      padding: 0 18px;
+      color: rgba(255,255,255,.92);
+      font-size: clamp(25px, 6.5vw, 42px);
+      line-height: 1.05;
+      font-weight: 950;
+      letter-spacing: -0.06em;
+      text-align: center;
+      word-break: keep-all;
+      text-shadow: 0 8px 26px rgba(0,0,0,.34);
+    }
+
+    .slot-detail {
+      min-height: 49px;
+      display: grid;
+      place-items: center;
+      padding: 11px 14px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.10);
+      color: rgba(255,255,255,.75);
+      font-size: 13px;
+      line-height: 1.45;
+      font-weight: 800;
+      text-align: center;
+      word-break: keep-all;
+    }
+
+    .slot-list {
+      display: grid;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .slot-mini {
+      display: grid;
+      grid-template-columns: 30px 1fr;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .slot-mini-index {
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      background: rgba(99,102,241,.96);
+      color: white;
+      font-size: 13px;
+      font-weight: 950;
+      z-index: 5;
+    }
+
+    .slot-mini .slot-window {
+      height: 58px;
+      border-radius: 18px;
+    }
+
+    .slot-mini .slot-item {
+      height: 58px;
+      font-size: clamp(18px, 5vw, 27px);
+      justify-content: start;
+      text-align: left;
+      padding: 0 14px;
+    }
+
+    .slot-mini-detail {
+      grid-column: 2 / 3;
+      margin-top: -5px;
+      color: rgba(255,255,255,.64);
+      font-size: 12px;
+      font-weight: 750;
+      line-height: 1.35;
+      word-break: keep-all;
+    }
+
+    .slot-status {
+      color: rgba(255,255,255,.66);
+      font-size: 13px;
+      font-weight: 850;
+      text-align: center;
+      word-break: keep-all;
+    }
+
+    .slot-bump {
+      animation: slotBump .34s cubic-bezier(.18, 1.45, .35, 1) both;
+    }
+
+    @keyframes slotBump {
+      0% { transform: scale(.992); }
+      46% { transform: scale(1.012); }
+      100% { transform: scale(1); }
+    }
+
+
+    .slot-status:empty,
+    .slot-detail:empty,
+    .slot-mini-detail:empty {
+      display: none;
+    }
+
+
+    .cat-stage {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .cat {
+      position: absolute;
+      left: -92px;
+      top: 48%;
+      transform: translateY(-50%);
+      width: 74px;
+      height: 54px;
+      border-radius: 30px 32px 24px 24px;
+      background: #f8fafc;
+      box-shadow: 0 12px 26px rgba(15,23,42,.24);
+      animation: catDash 1.35s ease-in-out forwards;
+    }
+
+    .cat::before,
+    .cat::after {
+      content: "";
+      position: absolute;
+      top: -13px;
+      width: 22px;
+      height: 22px;
+      background: #f8fafc;
+      clip-path: polygon(50% 0, 0 100%, 100% 100%);
+    }
+
+    .cat::before {
+      left: 12px;
+      transform: rotate(-12deg);
+    }
+
+    .cat::after {
+      right: 12px;
+      transform: rotate(12deg);
+    }
+
+    .cat-face {
+      position: absolute;
+      inset: 0;
+    }
+
+    .cat-face::before,
+    .cat-face::after {
+      content: "";
+      position: absolute;
+      top: 21px;
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: #111827;
+    }
+
+    .cat-face::before {
+      left: 24px;
+    }
+
+    .cat-face::after {
+      right: 24px;
+    }
+
+    .cat-mouth {
+      position: absolute;
+      left: 50%;
+      top: 31px;
+      width: 12px;
+      height: 7px;
+      border-bottom: 2px solid #111827;
+      border-radius: 0 0 12px 12px;
+      transform: translateX(-50%);
+    }
+
+    .cat-paw {
+      position: absolute;
+      right: -13px;
+      top: 25px;
+      width: 23px;
+      height: 14px;
+      border-radius: 999px;
+      background: #f8fafc;
+      transform-origin: left center;
+      animation: pawTap .38s ease-in-out .58s 2;
+    }
+
+    .cat-tail {
+      position: absolute;
+      left: -18px;
+      top: 18px;
+      width: 28px;
+      height: 10px;
+      border-radius: 999px;
+      background: #f8fafc;
+      transform: rotate(20deg);
+    }
+
+    @keyframes catDash {
+      0% { transform: translate(-10px, -50%) rotate(0deg); opacity: 0; }
+      12% { opacity: 1; }
+      45% { transform: translate(calc(50vw - 80px), -50%) rotate(-2deg); }
+      64% { transform: translate(calc(50vw - 52px), -50%) rotate(2deg); }
+      100% { transform: translate(calc(100vw + 110px), -50%) rotate(0deg); opacity: 0; }
+    }
+
+    @keyframes pawTap {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(-26deg) translateX(7px); }
+    }
+
+    .slot-window.slot-nudge {
+      animation: slotNudge .36s ease both;
+    }
+
+    @keyframes slotNudge {
+      0% { transform: translateX(0); filter: brightness(1); }
+      35% { transform: translateX(8px); filter: brightness(1.18); }
+      100% { transform: translateX(0); filter: brightness(1); }
+    }
+
+    .admin-percent-row {
+      display: grid;
+      grid-template-columns: 1fr 78px;
+      gap: 10px;
+      align-items: center;
+      margin-top: 12px;
+    }
+
+    .admin-percent-row input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .percent-input {
+      width: 78px;
+      height: 40px;
+      border-radius: 13px;
+      border: 1px solid var(--line);
+      padding: 0 9px;
+      text-align: center;
+      font-weight: 900;
+      outline: none;
+      background: #fff;
+      color: var(--ink);
+    }
+
+    .prob-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 10px;
+      padding: 9px 10px;
+      border-radius: 13px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      color: #475569;
+      font-size: 12px;
+      font-weight: 850;
+    }
+
+    /* Design refresh */
+    :root {
+      --bg: #f4f1ec;
+      --card: #fffdf8;
+      --ink: #171717;
+      --muted: #6b665f;
+      --line: #e8e1d6;
+      --accent: #e54835;
+      --accent-dark: #c93524;
+      --accent-soft: #fff0ec;
+      --green: #0f8f6a;
+      --black: #171717;
+      --shadow: 0 18px 45px rgba(32, 24, 18, 0.12);
+      --radius: 24px;
+    }
+
+    body {
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.76), rgba(255,255,255,.32)),
+        linear-gradient(135deg, #f8f5ef 0%, #f0ebe2 46%, #edf3ee 100%);
+      padding: 28px;
+    }
+
+    body.admin-page {
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.78), rgba(255,255,255,.3)),
+        linear-gradient(135deg, #f8f5ef 0%, #f2eee7 58%, #edf4f1 100%);
+    }
+
+    .user-app {
+      width: min(520px, 100%);
+    }
+
+    .picker-card,
+    .admin-card {
+      background: var(--card);
+      border: 1px solid rgba(40, 32, 24, .10);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: none;
+    }
+
+    .picker-card {
+      padding: clamp(22px, 4.5vw, 36px);
+    }
+
+    .controls {
+      gap: 13px;
+      margin-bottom: 14px;
+    }
+
+    .picker-card::before,
+    .picker-card::after,
+    .result-box::before {
+      display: none;
+    }
+
+    .header {
+      text-align: left;
+      margin-bottom: 20px;
+    }
+
+    .badge {
+      margin-bottom: 16px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: #f2eee7;
+      border-color: #e5ddd1;
+      color: #5b5046;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    h1,
+    .admin-title h1,
+    .restaurant-name,
+    .multi-name,
+    .fakeout-name,
+    .slot-item,
+    .pick-button,
+    .setting-title,
+    .final-label,
+    .fakeout-label,
+    .slot-guide {
+      letter-spacing: 0;
+    }
+
+    h1 {
+      font-size: clamp(34px, 7vw, 48px);
+      line-height: 1.08;
+      font-weight: 900;
+    }
+
+    .subtitle {
+      max-width: 360px;
+      margin: 12px 0 0;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .result-box {
+      min-height: 210px;
+      border-radius: 22px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,0)),
+        #1d1a17;
+      border: 1px solid rgba(255,255,255,.08);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.10);
+      padding: 24px 20px;
+    }
+
+    .placeholder {
+      font-size: clamp(31px, 8vw, 48px);
+      font-weight: 900;
+    }
+
+    .placeholder-sub,
+    .slot-status,
+    .fakeout-sub {
+      color: rgba(255, 255, 255, .62);
+      font-weight: 700;
+    }
+
+    .restaurant-name {
+      font-size: clamp(30px, 6.2vw, 44px);
+      font-weight: 900;
+    }
+
+    .pill,
+    .menu-line,
+    .multi-item,
+    .slot-detail,
+    .slot-window,
+    .candidate-chip,
+    .fakeout-label,
+    .slot-guide {
+      background: rgba(255,255,255,.07);
+      border: 1px solid rgba(255,255,255,.11);
+      box-shadow: none;
+    }
+
+    .menu-line,
+    .slot-detail {
+      border-radius: 14px;
+      color: rgba(255,255,255,.72);
+      font-weight: 750;
+    }
+
+    .slot-window {
+      border-radius: 16px;
+      background: rgba(255,255,255,.08);
+      box-shadow: inset 0 12px 20px rgba(0,0,0,.22);
+    }
+
+    .slot-window::before {
+      background: linear-gradient(180deg, rgba(29,26,23,.88), transparent);
+    }
+
+    .slot-window::after {
+      background: linear-gradient(0deg, rgba(29,26,23,.88), transparent);
+    }
+
+    .slot-item {
+      color: rgba(255,255,255,.94);
+      font-size: clamp(25px, 6vw, 38px);
+      font-weight: 900;
+      text-shadow: none;
+    }
+
+    .index,
+    .slot-mini-index,
+    .final-label,
+    .fakeout-label.hot,
+    .candidate-chip.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+
+    .label {
+      color: #4c453e;
+      font-weight: 800;
+    }
+
+    .count-select,
+    textarea,
+    .boost-input,
+    .admin-code-input,
+    .percent-input {
+      background: #fffaf3;
+      border-color: #dfd6c9;
+      border-radius: 12px;
+    }
+
+    .chips {
+      justify-content: flex-start;
+      gap: 7px;
+    }
+
+    .chip {
+      padding: 8px 11px;
+      background: #fffaf3;
+      border-color: #dfd6c9;
+      color: #5b5046;
+      font-size: 12px;
+      font-weight: 800;
+      box-shadow: 0 1px 0 rgba(255,255,255,.75);
+    }
+
+    .chip.active,
+    .chip.all.active {
+      background: var(--black);
+      border-color: var(--black);
+      color: white;
+    }
+
+    .chip.all {
+      color: var(--accent-dark);
+      background: var(--accent-soft);
+      border-color: #f3c5bd;
+    }
+
+    .pick-button {
+      height: 58px;
+      border-radius: 16px;
+      background: var(--accent);
+      font-size: 17px;
+      font-weight: 900;
+      box-shadow: 0 14px 28px rgba(176, 55, 38, .22);
+    }
+
+    .pick-button:hover {
+      background: var(--accent-dark);
+      box-shadow: 0 16px 30px rgba(176, 55, 38, .26);
+    }
+
+    .toast {
+      background: rgba(23,23,23,.94);
+      border-radius: 14px;
+      font-weight: 800;
+    }
+
+    .admin-header {
+      align-items: flex-start;
+      margin-bottom: 20px;
+    }
+
+    .admin-title h1 {
+      font-size: clamp(34px, 5vw, 50px);
+      line-height: 1.08;
+    }
+
+    .admin-card {
+      border-radius: 22px;
+      padding: 22px;
+    }
+
+    .view-link,
+    .admin-code-button {
+      background: var(--black);
+      border-radius: 14px;
+    }
+
+    .admin-button {
+      border-radius: 13px;
+      background: #fffaf3;
+      color: #39332d;
+    }
+
+    .admin-button.primary {
+      background: var(--green);
+      border-color: var(--green);
+    }
+
+    .stat,
+    .setting-box,
+    .preview-row,
+    .prob-row,
+    .admin-url-preview {
+      background: #fffaf3;
+      border-color: #e5ddd1;
+      border-radius: 14px;
+    }
+
+    .type-list span {
+      background: var(--accent-soft);
+      border-color: #f3c5bd;
+      color: var(--accent-dark);
+    }
+
+    .setting-row input[type="range"],
+    .admin-percent-row input[type="range"] {
+      accent-color: var(--accent);
+    }
+
+    .movement-control + .movement-control {
+      margin-top: 12px;
+    }
+
+    .cat-watch-desc {
+      margin-top: 14px;
+    }
+
+    .movement-control .prob-row {
+      margin-top: 0;
+      margin-bottom: 8px;
+    }
+
+    .detail-reveal {
+      animation: detailSlideIn .24s ease both;
+    }
+
+    @keyframes detailSlideIn {
+      from { opacity: 0; transform: translateY(7px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .cat-stage {
+      overflow: visible;
+    }
+
+    .cat {
+      position: absolute;
+      left: auto;
+      right: -148px;
+      top: 50%;
+      width: 142px;
+      height: 92px;
+      background: transparent;
+      border-radius: 0;
+      box-shadow: none;
+      transform: translateY(-50%);
+      animation: catKnockIn 1.78s cubic-bezier(.2,.82,.18,1) forwards;
+    }
+
+    .cat::before,
+    .cat::after {
+      display: none;
+    }
+
+    .cat-body {
+      position: absolute;
+      right: 16px;
+      bottom: 10px;
+      width: 86px;
+      height: 45px;
+      border-radius: 999px 999px 24px 30px;
+      background: #f4eee5;
+      box-shadow: inset -10px -8px 0 rgba(172, 134, 98, .16), 0 13px 24px rgba(0,0,0,.18);
+    }
+
+    .cat-head {
+      position: absolute;
+      left: 22px;
+      top: 13px;
+      width: 62px;
+      height: 52px;
+      border-radius: 25px 25px 22px 22px;
+      background: #f4eee5;
+      box-shadow: inset -8px -7px 0 rgba(172, 134, 98, .14);
+    }
+
+    .cat-head::before,
+    .cat-head::after {
+      content: "";
+      position: absolute;
+      top: -15px;
+      width: 24px;
+      height: 24px;
+      background: #f4eee5;
+      clip-path: polygon(50% 0, 0 100%, 100% 100%);
+    }
+
+    .cat-head::before {
+      left: 6px;
+      transform: rotate(-14deg);
+    }
+
+    .cat-head::after {
+      right: 6px;
+      transform: rotate(14deg);
+    }
+
+    .cat-face::before,
+    .cat-face::after {
+      top: 33px;
+      width: 6px;
+      height: 8px;
+      background: #1f1b18;
+      z-index: 2;
+    }
+
+    .cat-face::before {
+      left: 42px;
+    }
+
+    .cat-face::after {
+      right: 72px;
+    }
+
+    .cat-mouth {
+      left: 53px;
+      top: 44px;
+      width: 10px;
+      height: 6px;
+      border-color: #1f1b18;
+      z-index: 2;
+    }
+
+    .cat-whisker {
+      position: absolute;
+      top: 42px;
+      width: 25px;
+      height: 1px;
+      background: rgba(31, 27, 24, .58);
+      z-index: 3;
+    }
+
+    .cat-whisker.left {
+      left: 17px;
+      transform: rotate(9deg);
+    }
+
+    .cat-whisker.right {
+      left: 63px;
+      transform: rotate(-9deg);
+    }
+
+    .cat-paw {
+      right: auto;
+      left: 0;
+      top: 51px;
+      width: 48px;
+      height: 17px;
+      border-radius: 999px;
+      background: #f4eee5;
+      transform-origin: right center;
+      box-shadow: inset 0 -4px 0 rgba(172, 134, 98, .13);
+      animation: pawSwat .52s cubic-bezier(.18,.92,.22,1.34) .72s 2;
+      z-index: 4;
+    }
+
+    .cat-paw.back {
+      left: 74px;
+      top: 68px;
+      width: 31px;
+      height: 14px;
+      opacity: .85;
+      animation: none;
+      z-index: 1;
+    }
+
+    .cat-tail {
+      left: auto;
+      right: 2px;
+      top: 30px;
+      width: 44px;
+      height: 14px;
+      border-radius: 999px;
+      background: #f4eee5;
+      transform: rotate(38deg);
+      transform-origin: left center;
+      animation: tailFlick .42s ease-in-out .45s 3;
+      box-shadow: inset -7px -3px 0 rgba(172, 134, 98, .14);
+    }
+
+    .desk-item {
+      position: absolute;
+      left: -22px;
+      top: 57px;
+      width: 24px;
+      height: 18px;
+      border-radius: 5px;
+      background: #e54835;
+      box-shadow: 0 10px 18px rgba(0,0,0,.18);
+      animation: deskItemFall 1.05s cubic-bezier(.22,.74,.24,1) .76s forwards;
+      z-index: 2;
+    }
+
+    @keyframes catKnockIn {
+      0% { transform: translate(0, -50%) scale(.56) rotate(0deg); opacity: 0; }
+      16% { opacity: 1; }
+      45% { transform: translate(-96px, -50%) scale(.56) rotate(-1deg); opacity: 1; }
+      73% { transform: translate(-100px, -50%) scale(.56) rotate(1deg); opacity: 1; }
+      100% { transform: translate(36px, -50%) scale(.56) rotate(0deg); opacity: 0; }
+    }
+
+    @keyframes pawSwat {
+      0%, 100% { transform: rotate(4deg) translateX(0); }
+      46% { transform: rotate(-10deg) translateX(-10px); }
+      62% { transform: rotate(-6deg) translateX(-7px); }
+    }
+
+    @keyframes tailFlick {
+      0%, 100% { transform: rotate(38deg); }
+      50% { transform: rotate(22deg); }
+    }
+
+    @keyframes deskItemFall {
+      0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+      45% { transform: translate(-20px, -7px) rotate(-18deg); opacity: 1; }
+      100% { transform: translate(-86px, 78px) rotate(-92deg); opacity: 0; }
+    }
+
+    .cat {
+      right: -116px;
+      width: 132px;
+      height: 88px;
+      image-rendering: pixelated;
+      animation: catKnockIn 1.72s steps(12, end) forwards;
+      transform-origin: right center;
+    }
+
+    .cat-body,
+    .cat-head,
+    .cat-paw,
+    .cat-tail,
+    .desk-item {
+      border-radius: 0;
+      image-rendering: pixelated;
+    }
+
+    .cat-body {
+      right: 14px;
+      bottom: 14px;
+      width: 72px;
+      height: 36px;
+      background: #f4a340;
+      box-shadow:
+        0 -8px 0 #f4a340,
+        8px -8px 0 #f4a340,
+        16px -8px 0 #f4a340,
+        24px -8px 0 #f4a340,
+        32px -8px 0 #d97a22,
+        40px -8px 0 #f4a340,
+        48px -8px 0 #f4a340,
+        8px 36px 0 #d97a22,
+        48px 36px 0 #d97a22,
+        0 10px 18px rgba(0,0,0,.18);
+    }
+
+    .cat-head {
+      left: 24px;
+      top: 18px;
+      width: 48px;
+      height: 44px;
+      background: #f4a340;
+      box-shadow:
+        0 -8px 0 #f4a340,
+        8px -16px 0 #f4a340,
+        16px -8px 0 #f4a340,
+        24px -8px 0 #f4a340,
+        32px -16px 0 #f4a340,
+        40px -8px 0 #f4a340,
+        8px 8px 0 #ffd08a,
+        32px 8px 0 #ffd08a,
+        0 10px 16px rgba(0,0,0,.12);
+    }
+
+    .cat-head::before,
+    .cat-head::after {
+      display: none;
+    }
+
+    .cat-face::before,
+    .cat-face::after {
+      top: 34px;
+      width: 6px;
+      height: 6px;
+      border-radius: 0;
+      background: #2a1f18;
+    }
+
+    .cat-face::before {
+      left: 36px;
+    }
+
+    .cat-face::after {
+      right: 74px;
+    }
+
+    .cat-mouth {
+      left: 51px;
+      top: 45px;
+      width: 8px;
+      height: 4px;
+      border: 0;
+      border-bottom: 4px solid #2a1f18;
+      border-radius: 0;
+    }
+
+    .cat-whisker {
+      height: 2px;
+      background: #7a4a21;
+    }
+
+    .cat-whisker.left {
+      left: 14px;
+      top: 43px;
+      width: 22px;
+      transform: none;
+      box-shadow: 2px 6px 0 #7a4a21;
+    }
+
+    .cat-whisker.right {
+      left: 65px;
+      top: 43px;
+      width: 22px;
+      transform: none;
+      box-shadow: -2px 6px 0 #7a4a21;
+    }
+
+    .cat-paw {
+      left: 24px;
+      top: 55px;
+      width: 28px;
+      height: 14px;
+      background: #f4a340;
+      box-shadow:
+        -8px 0 0 #f4a340,
+        -16px 0 0 #ffd08a;
+      animation: pawSwat .48s steps(5, end) .68s 2;
+    }
+
+    .cat-paw.back {
+      left: 72px;
+      top: 68px;
+      width: 28px;
+      height: 12px;
+      background: #d97a22;
+      box-shadow: 22px 0 0 #d97a22;
+    }
+
+    .cat-watch {
+      animation-duration: 1.45s;
+    }
+
+    .cat-watch .cat-paw {
+      animation: none;
+      transform: rotate(4deg);
+    }
+
+    .cat-watch .cat-tail {
+      animation-delay: .25s;
+      animation-iteration-count: 2;
+    }
+
+    .cat-tail {
+      right: 0;
+      top: 24px;
+      width: 36px;
+      height: 12px;
+      background: #f4a340;
+      box-shadow:
+        10px -10px 0 #f4a340,
+        20px -10px 0 #d97a22,
+        30px 0 0 #f4a340;
+      transform: none;
+      animation: tailFlick .42s steps(3, end) .45s 3;
+    }
+
+    .desk-item {
+      left: -16px;
+      top: 58px;
+      width: 18px;
+      height: 18px;
+      background: #e54835;
+      box-shadow:
+        0 -4px 0 #ff705b,
+        4px 0 0 #c93524,
+        0 10px 14px rgba(0,0,0,.18);
+      animation: deskItemFall 1s steps(8, end) .74s forwards;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+      }
+    }
+
+    @media (max-width: 850px) {
+      body,
+      body.admin-page {
+        padding: 18px;
+      }
+
+      .admin-header {
+        display: block;
+      }
+
+      .view-link {
+        margin-top: 18px;
+      }
+
+      .admin-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 560px) {
+      body {
+        align-items: start;
+        padding: 14px;
+      }
+
+      .picker-card {
+        padding: 20px;
+        border-radius: 20px;
+      }
+
+      .header {
+        margin-bottom: 18px;
+      }
+
+      .result-box {
+        min-height: 184px;
+        padding: 20px 16px;
+        margin-bottom: 14px;
+      }
+
+      .row {
+        align-items: flex-start;
+      }
+
+      .pick-button {
+        height: 54px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="user-app">
+    <section class="picker-card">
+      <div class="header">
+        <div class="badge">🍽️ 인하대 후문 점심</div>
+        <h1>오늘 점심<br />어디 갈까?</h1>
+        <p class="subtitle">후문 근처 점심 후보만 가볍게 골라드립니다.</p>
+      </div>
+
+      <section class="result-box" id="resultBox">
+        <div class="cat-stage" id="catStage"></div>
+        <div class="result-inner" id="resultInner">
+          <div class="placeholder">눌러서 뽑기</div>
+          <div class="placeholder-sub">식당명 · 종류 · 대표메뉴가 함께 표시됩니다</div>
+        </div>
+      </section>
+
+      <section class="controls">
+        <div class="row">
+          <div class="label">추천 개수</div>
+          <select class="count-select" id="countSelect"></select>
+        </div>
+        <div class="chips" id="chips"></div>
+      </section>
+
+      <button class="pick-button" id="pickButton">랜덤으로 고르기</button>
+    </section>
+  </main>
+
+  <main class="admin-layout">
+    <header class="admin-header">
+      <div class="admin-title">
+        <div class="badge">관리자 화면</div>
+        <h1>후문 식당 목록 관리</h1>
+        <p>일반 화면에는 뽑기만 표시됩니다. 이 화면에서 식당명, 종류, 대표메뉴, 우선도, 가중치 강도, 관리자 번호를 수정할 수 있습니다.</p>
+      </div>
+      <a class="view-link" id="viewLink" href="inha_backgate_lunch_picker_slot_cat_fixed2.html">일반 화면으로 보기</a>
+    </header>
+
+    <section class="admin-grid">
+      <div class="admin-card">
+        <h2>식당 목록</h2>
+        <p class="admin-note">
+          칸마다 내용을 입력하세요. 우선도는 1~3이며, 3은 자주 가도 좋은 곳, 1은 가끔만 생각나는 곳입니다.
+        </p>
+        <div class="admin-toolbar">
+          <button class="admin-button secondary" id="addRestaurantButton">식당 추가</button>
+        </div>
+        <div class="restaurant-table-wrap">
+          <table class="restaurant-table" aria-label="식당 목록 편집">
+            <colgroup>
+              <col />
+              <col />
+              <col />
+              <col />
+              <col />
+            </colgroup>
+            <thead>
+              <tr>
+                <th>식당명</th>
+                <th>종류</th>
+                <th>대표메뉴</th>
+                <th>우선도</th>
+                <th>삭제</th>
+              </tr>
+            </thead>
+            <tbody id="restaurantTableBody"></tbody>
+          </table>
+        </div>
+        <div class="admin-actions">
+          <button class="admin-button primary" id="saveButton">저장</button>
+          <button class="admin-button danger" id="resetButton">기본값 복구</button>
+        </div>
+      </div>
+
+      <aside class="admin-card">
+        <h2>목록 상태</h2>
+        <div class="stat-list">
+          <div class="stat">
+            <span>전체 식당</span>
+            <b id="totalStat">0</b>
+          </div>
+          <div class="stat">
+            <span>종류</span>
+            <b id="typeStat">0</b>
+          </div>
+        </div>
+        <div class="type-list" id="typeList"></div>
+
+        <div class="setting-box">
+          <h2 class="setting-title">뽑기 가중치</h2>
+          <p class="setting-desc">
+            우선도 3인 식당이 우선도 1인 식당보다 최대 몇 배 더 잘 뽑힐지 설정합니다.
+            1.0이면 우선도 차이를 반영하지 않습니다.
+          </p>
+
+          <div class="setting-row">
+            <input id="boostRange" type="range" min="1" max="3" step="0.1" />
+            <input id="boostInput" class="boost-input" type="number" min="1" max="3" step="0.1" />
+          </div>
+
+          <div class="preview-table">
+            <div class="preview-row">
+              <span>우선도 1</span>
+              <b id="weightP1">1.00배</b>
+            </div>
+            <div class="preview-row">
+              <span>우선도 2</span>
+              <b id="weightP2">1.35배</b>
+            </div>
+            <div class="preview-row">
+              <span>우선도 3</span>
+              <b id="weightP3">1.70배</b>
+            </div>
+          </div>
+        </div>
+
+        <div class="setting-box">
+          <h2 class="setting-title">관리자 번호</h2>
+          <p class="setting-desc">
+            관리자 화면 접속 번호를 변경합니다. 변경 후에는 새 번호를 주소 뒤에 붙여 접속합니다.
+          </p>
+
+          <div class="admin-code-row">
+            <input id="adminCodeInput" class="admin-code-input" type="text" maxlength="24" />
+            <button id="adminCodeButton" class="admin-code-button">변경</button>
+          </div>
+
+          <div class="admin-url-preview" id="adminUrlPreview"></div>
+        </div>
+
+        <div class="setting-box">
+          <h2 class="setting-title">룰렛 움직임</h2>
+          <p class="setting-desc">
+            1차로 멈춘 뒤 최종 위치가 바뀔 확률입니다. 세 값을 합산해 자동으로 비율을 계산합니다.
+          </p>
+
+          <div class="movement-control">
+            <div class="prob-row">
+              <span>한 칸 뒤</span>
+              <b id="probBackText">20%</b>
+            </div>
+            <div class="admin-percent-row">
+              <input id="probBackRange" type="range" min="0" max="100" step="1" />
+              <input id="probBackInput" class="percent-input" type="number" min="0" max="100" step="1" />
+            </div>
+          </div>
+
+          <div class="movement-control">
+            <div class="prob-row">
+              <span>그대로</span>
+              <b id="probStayText">60%</b>
+            </div>
+            <div class="admin-percent-row">
+              <input id="probStayRange" type="range" min="0" max="100" step="1" />
+              <input id="probStayInput" class="percent-input" type="number" min="0" max="100" step="1" />
+            </div>
+          </div>
+
+          <div class="movement-control">
+            <div class="prob-row">
+              <span>한 칸 앞</span>
+              <b id="probForwardText">20%</b>
+            </div>
+            <div class="admin-percent-row">
+              <input id="probForwardRange" type="range" min="0" max="100" step="1" />
+              <input id="probForwardInput" class="percent-input" type="number" min="0" max="100" step="1" />
+            </div>
+          </div>
+        </div>
+
+        <div class="setting-box">
+          <h2 class="setting-title">고양이 이스터에그</h2>
+          <p class="setting-desc">
+            시행당 확률입니다. 확정된 것처럼 보이는 순간 고양이가 난입합니다.
+          </p>
+
+          <div class="admin-percent-row">
+            <input id="catChanceRange" type="range" min="0" max="100" step="1" />
+            <input id="catChanceInput" class="percent-input" type="number" min="0" max="100" step="1" />
+          </div>
+
+          <p class="setting-desc cat-watch-desc">
+            등장했을 때 아무것도 안 건드리고 구경만 하고 갈 확률입니다.
+          </p>
+
+          <div class="admin-percent-row">
+            <input id="catWatchRange" type="range" min="0" max="100" step="1" />
+            <input id="catWatchInput" class="percent-input" type="number" min="0" max="100" step="1" />
+          </div>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const defaultRestaurants = [
+      { name: "킹콩순두부", type: "한식", menu: "순두부찌개", priority: 3 },
+      { name: "온뚝", type: "한식", menu: "김치찌개, 된장찌개 백반", priority: 3 },
+      { name: "수미네국밥", type: "한식", menu: "국밥", priority: 2 },
+      { name: "신촌설렁탕", type: "한식", menu: "설렁탕, 육회비빔밥", priority: 2 },
+      { name: "돈마니", type: "한식/분식", menu: "제육볶음, 돈까스, 떡볶이", priority: 2 },
+      { name: "고수찜닭", type: "한식", menu: "찜닭", priority: 1 },
+
+      { name: "지붕덮밥", type: "덮밥", menu: "연어장덮밥, 새우장덮밥", priority: 3 },
+      { name: "백소정 인하대후문점", type: "일식", menu: "돈까스, 마제소바, 우동", priority: 3 },
+      { name: "면식당 인하대점", type: "일식/면류", menu: "라멘, 마제소바, 카츠", priority: 3 },
+      { name: "오월의유부 인하대점", type: "일식/간편식", menu: "유부초밥, 우동", priority: 2 },
+
+      { name: "미식당", type: "양식", menu: "파스타, 리조또", priority: 2 },
+      { name: "성수완당 인하대점", type: "면류", menu: "완당면, 완당칼국수", priority: 2 },
+      { name: "큰손 샤브샤브 칼국수", type: "면류", menu: "샤브샤브 칼국수", priority: 2 },
+      { name: "등촌샤브칼국수 인하대점", type: "면류", menu: "샤브칼국수", priority: 2 },
+      { name: "멘야토리 라멘", type: "면류", menu: "라멘", priority: 2 },
+
+      { name: "디탕 인하대점", type: "아시안", menu: "쌀국수, 분짜, 팟타이" }
+    ];
+
+    const STORAGE_KEY = "inha-backgate-lunch-restaurants-v1";
+    const SETTINGS_KEY = "inha-backgate-lunch-picker-settings-v1";
+    const DEFAULT_ADMIN_CODE = "2195";
+
+    const body = document.body;
+    const chips = document.getElementById("chips");
+    const countSelect = document.getElementById("countSelect");
+    const pickButton = document.getElementById("pickButton");
+    const resultBox = document.getElementById("resultBox");
+    const resultInner = document.getElementById("resultInner");
+    const catStage = document.getElementById("catStage");
+    const toast = document.getElementById("toast");
+    const restaurantTableBody = document.getElementById("restaurantTableBody");
+    const addRestaurantButton = document.getElementById("addRestaurantButton");
+    const saveButton = document.getElementById("saveButton");
+    const resetButton = document.getElementById("resetButton");
+    const totalStat = document.getElementById("totalStat");
+    const typeStat = document.getElementById("typeStat");
+    const typeList = document.getElementById("typeList");
+    const boostRange = document.getElementById("boostRange");
+    const boostInput = document.getElementById("boostInput");
+    const weightP1 = document.getElementById("weightP1");
+    const weightP2 = document.getElementById("weightP2");
+    const weightP3 = document.getElementById("weightP3");
+    const adminCodeInput = document.getElementById("adminCodeInput");
+    const adminCodeButton = document.getElementById("adminCodeButton");
+    const adminUrlPreview = document.getElementById("adminUrlPreview");
+    const viewLink = document.getElementById("viewLink");
+    const catChanceRange = document.getElementById("catChanceRange");
+    const catChanceInput = document.getElementById("catChanceInput");
+    const catWatchRange = document.getElementById("catWatchRange");
+    const catWatchInput = document.getElementById("catWatchInput");
+    const probBackText = document.getElementById("probBackText");
+    const probStayText = document.getElementById("probStayText");
+    const probForwardText = document.getElementById("probForwardText");
+    const probBackRange = document.getElementById("probBackRange");
+    const probBackInput = document.getElementById("probBackInput");
+    const probStayRange = document.getElementById("probStayRange");
+    const probStayInput = document.getElementById("probStayInput");
+    const probForwardRange = document.getElementById("probForwardRange");
+    const probForwardInput = document.getElementById("probForwardInput");
+
+    let restaurants = loadRestaurants();
+    let settings = loadSettings();
+    const currentAdminCode = String(settings.adminCode || DEFAULT_ADMIN_CODE);
+    const isAdmin = new URLSearchParams(location.search).get("admin") === currentAdminCode;
+    let selectedTypes = new Set();
+
+    if (isAdmin) {
+      body.classList.add("admin-page");
+    }
+
+    if (viewLink) {
+      viewLink.href = location.pathname.split("/").pop() || "index.html";
+    }
+
+    function loadRestaurants() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return defaultRestaurants;
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed) || !parsed.length) return defaultRestaurants;
+        return parsed.map(item => ({
+          ...item,
+          priority: Math.max(1, Math.min(3, Number(item.priority || 2)))
+        }));
+      } catch {
+        return defaultRestaurants;
+      }
+    }
+
+    function saveRestaurants() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(restaurants));
+    }
+
+    function loadSettings() {
+      try {
+        const raw = localStorage.getItem(SETTINGS_KEY);
+        if (!raw) return getDefaultSettings();
+        const parsed = JSON.parse(raw);
+        return normalizeSettings(parsed);
+      } catch {
+        return getDefaultSettings();
+      }
+    }
+
+    function saveSettings() {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    }
+
+    function getDefaultSettings() {
+      return {
+        maxBoost: 1.7,
+        adminCode: DEFAULT_ADMIN_CODE,
+        catChance: 5,
+        catWatchChance: 35,
+        moveBackProb: 20,
+        stayProb: 60,
+        moveForwardProb: 20
+      };
+    }
+
+    function normalizeSettings(value = {}) {
+      const defaults = getDefaultSettings();
+      return {
+        maxBoost: clampBoost(value.maxBoost ?? defaults.maxBoost),
+        adminCode: normalizeAdminCode(value.adminCode || defaults.adminCode),
+        catChance: clampPercent(value.catChance ?? defaults.catChance, 0, 100),
+        catWatchChance: clampPercent(value.catWatchChance ?? defaults.catWatchChance, 0, 100),
+        moveBackProb: clampPercent(value.moveBackProb ?? defaults.moveBackProb, 0, 100),
+        stayProb: clampPercent(value.stayProb ?? defaults.stayProb, 0, 100),
+        moveForwardProb: clampPercent(value.moveForwardProb ?? defaults.moveForwardProb, 0, 100)
+      };
+    }
+
+    function clampPercent(value, min = 0, max = 100) {
+      return Math.max(min, Math.min(max, Number(value) || 0));
+    }
+
+    function clampBoost(value) {
+      return Math.max(1, Math.min(3, Number(value) || 1.7));
+    }
+
+    function normalizeAdminCode(value) {
+      const code = String(value || "").replace(/[^0-9A-Za-z_-]/g, "").slice(0, 24);
+      return code || DEFAULT_ADMIN_CODE;
+    }
+
+    function getTypes() {
+      return [...new Set(restaurants.map(item => item.type).filter(Boolean))];
+    }
+
+    function getPool() {
+      if (selectedTypes.size === 0) return restaurants;
+      return restaurants.filter(item => selectedTypes.has(item.type));
+    }
+
+    function renderUser() {
+      const types = getTypes();
+      chips.innerHTML = `<button class="chip all active" data-type="전체">전체</button>`;
+
+      types.forEach(type => {
+        chips.insertAdjacentHTML(
+          "beforeend",
+          `<button class="chip" data-type="${escapeHtml(type)}">${escapeHtml(type)}</button>`
+        );
+      });
+
+      updateCountOptions();
+    }
+
+    function updateCountOptions() {
+      const poolLength = getPool().length || restaurants.length;
+      const max = Math.min(6, Math.max(1, poolLength));
+      const current = Math.min(Number(countSelect.value || 1), max);
+
+      countSelect.innerHTML = "";
+      for (let i = 1; i <= max; i++) {
+        const option = document.createElement("option");
+        option.value = i;
+        option.textContent = `${i}개`;
+        countSelect.appendChild(option);
+      }
+      countSelect.value = current;
+    }
+
+    function getSoftWeight(item) {
+      const priority = Math.max(1, Math.min(3, Number(item.priority || 2)));
+      const maxBoost = clampBoost(settings.maxBoost);
+      return 1 + ((priority - 1) / 2) * (maxBoost - 1);
+    }
+
+    function sample(array, n) {
+      const candidates = array.map(item => ({
+        ...item,
+        priority: Math.max(1, Math.min(3, Number(item.priority || 2)))
+      }));
+
+      const picked = [];
+      const limit = Math.min(n, candidates.length);
+
+      for (let pickIndex = 0; pickIndex < limit; pickIndex++) {
+        const totalWeight = candidates.reduce((sum, item) => sum + getSoftWeight(item), 0);
+        let cursor = Math.random() * totalWeight;
+        let selectedIndex = 0;
+
+        for (let i = 0; i < candidates.length; i++) {
+          cursor -= getSoftWeight(candidates[i]);
+          if (cursor <= 0) {
+            selectedIndex = i;
+            break;
+          }
+        }
+
+        const selected = candidates.splice(selectedIndex, 1)[0];
+        picked.push(selected);
+
+        for (let i = candidates.length - 1; i >= 0; i--) {
+          if (candidates[i].name === selected.name) {
+            candidates.splice(i, 1);
+          }
+        }
+      }
+
+      return picked;
+    }
+
+    function pickRestaurant() {
+      const pool = getPool();
+
+      if (!pool.length) {
+        showToast("선택한 종류에 해당하는 식당이 없습니다");
+        return;
+      }
+
+      const count = Number(countSelect.value || 1);
+      const finalItems = sample(pool, count);
+
+      pickButton.disabled = true;
+      pickButton.textContent = "고르는 중";
+      resultBox.classList.remove("final-reveal");
+      resultBox.classList.add("rolling");
+
+      runSlotRoulette(pool, finalItems).catch(error => {
+        console.error(error);
+        resultBox.classList.remove("rolling", "final-reveal");
+        pickButton.disabled = false;
+        pickButton.textContent = "다시 뽑기";
+        showToast("룰렛을 다시 준비했습니다");
+      });
+    }
+
+    function wait(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function differentPick(pool, avoidNames = []) {
+      const filtered = pool.filter(item => !avoidNames.includes(item.name));
+      const source = filtered.length ? filtered : pool;
+      return sample(source, 1)[0];
+    }
+
+    function buildReelItems(pool, finalItem, length = 24) {
+      const offset = pickMovementOffset();
+      const baseIndex = length + 1;
+      const firstStopIndex = baseIndex;
+      const finalIndex = baseIndex + offset;
+      const totalLength = baseIndex + 2;
+
+      const items = [];
+      for (let i = 0; i < totalLength; i++) {
+        items.push(sample(pool, 1)[0]);
+      }
+
+      items[finalIndex] = finalItem;
+
+      if (offset === 0) {
+        items[firstStopIndex - 1] = differentPick(pool, [finalItem.name]);
+        items[firstStopIndex + 1] = differentPick(pool, [finalItem.name, items[firstStopIndex - 1].name]);
+      } else {
+        items[firstStopIndex] = differentPick(pool, [finalItem.name]);
+      }
+
+      return { items, firstStopIndex, finalIndex, offset };
+    }
+
+    function renderSlotRoulette(pool, finalItems) {
+      if (finalItems.length === 1) {
+        const reel = buildReelItems(pool, finalItems[0], 31);
+
+        resultInner.innerHTML = `
+          <div class="slot-machine">
+            <div class="slot-window" data-slot-window>
+              <div class="slot-center-line"></div>
+              <div class="slot-track" data-slot-track>
+                ${reel.items.map(item => `<div class="slot-item">${escapeHtml(item.name)}</div>`).join("")}
+              </div>
+            </div>
+            <div class="slot-detail" id="slotDetail"></div>
+            <div class="slot-status" id="slotStatus"></div>
+          </div>
+        `;
+
+        return [{ finalItem: finalItems[0], reel }];
+      }
+
+      const slotData = finalItems.map((item, index) => {
+        const reel = buildReelItems(pool, item, 25 + index * 2);
+        return { finalItem: item, reel };
+      });
+
+      resultInner.innerHTML = `
+        <div class="slot-list">
+                    ${slotData.map((slot, index) => `
+            <div class="slot-mini" data-slot-mini="${index}">
+              <div class="slot-mini-index">${index + 1}</div>
+              <div class="slot-window" data-slot-window>
+                <div class="slot-center-line"></div>
+                <div class="slot-track" data-slot-track>
+                  ${slot.reel.items.map(item => `<div class="slot-item">${escapeHtml(item.name)}</div>`).join("")}
+                </div>
+              </div>
+              <div class="slot-mini-detail" data-slot-detail></div>
+            </div>
+          `).join("")}
+          <div class="slot-status" id="slotStatus"></div>
+        </div>
+      `;
+
+      return slotData;
+    }
+
+    async function runSlotRoulette(pool, finalItems) {
+      const slotData = renderSlotRoulette(pool, finalItems);
+      const tracks = [...resultInner.querySelectorAll("[data-slot-track]")];
+      const windows = [...resultInner.querySelectorAll("[data-slot-window]")];
+      const status = document.getElementById("slotStatus");
+
+      await wait(120);
+
+      const animations = tracks.map((track, index) => {
+        const slot = slotData[index];
+        const itemHeight = getSlotItemHeight(track);
+
+        return animateOneSlot({
+          track,
+          slotWindow: windows[index],
+          itemHeight,
+          firstStopIndex: slot.reel.firstStopIndex,
+          finalIndex: slot.reel.finalIndex,
+          finalItem: slot.finalItem,
+          delay: index * 260
+        });
+      });
+
+      if (status) {
+        status.textContent = "";
+      }
+
+      await Promise.all(animations);
+
+      if (status) {
+        status.textContent = "";
+      }
+
+      resultBox.classList.remove("rolling");
+      resultBox.classList.add("final-reveal");
+      confetti();
+
+      if (shouldCatAppear() && tracks.length) {
+        const shouldWatchOnly = shouldCatWatchOnly();
+
+        if (canCatReroll(pool, slotData) && !shouldWatchOnly) {
+          await runCatSurprise(pool, slotData, tracks, windows, status);
+        } else {
+          await runCatWatch(status);
+        }
+      }
+
+      await revealSlotDetails(slotData);
+
+      pickButton.disabled = false;
+      pickButton.textContent = "다시 뽑기";
+
+      setTimeout(() => {
+        resultBox.classList.remove("final-reveal");
+      }, 700);
+    }
+
+    function getSlotItemHeight(track) {
+      const first = track.children[0];
+      if (!first) return 74;
+
+      const cssHeight = parseFloat(getComputedStyle(first).height);
+      return cssHeight || first.offsetHeight || (track.closest(".slot-mini") ? 58 : 74);
+    }
+
+    function animateTo(track, y, duration, easing) {
+      const toTransform = `translateY(${-y}px)`;
+
+      return new Promise(resolve => {
+        let done = false;
+
+        const finish = () => {
+          if (done) return;
+          done = true;
+          track.removeEventListener("transitionend", onEnd);
+          track.style.transition = "none";
+          track.style.transform = toTransform;
+          resolve();
+        };
+
+        const onEnd = event => {
+          if (event.target === track && event.propertyName === "transform") {
+            finish();
+          }
+        };
+
+        track.getAnimations().forEach(animation => animation.cancel());
+        track.style.transition = "none";
+        track.offsetHeight;
+
+        track.addEventListener("transitionend", onEnd);
+        track.style.transition = `transform ${duration}ms ${easing}`;
+        track.style.transform = toTransform;
+
+        setTimeout(finish, duration + 120);
+      });
+    }
+
+    async function animateOneSlot({ track, slotWindow, itemHeight, firstStopIndex, finalIndex, finalItem, delay }) {
+      await wait(delay);
+
+      track.getAnimations().forEach(animation => animation.cancel());
+      track.style.transition = "none";
+      track.style.transform = "translateY(0px)";
+      track.offsetHeight;
+
+      await wait(50);
+
+      await animateTo(
+        track,
+        firstStopIndex * itemHeight,
+        2150,
+        "cubic-bezier(.08,.86,.12,1)"
+      );
+
+      await wait(360 + Math.random() * 300);
+
+      if (firstStopIndex !== finalIndex) {
+        await animateTo(
+          track,
+          finalIndex * itemHeight,
+          620,
+          "cubic-bezier(.18,.98,.25,1)"
+        );
+      } else {
+        if (slotWindow) {
+          slotWindow.classList.add("slot-nudge");
+          await wait(340);
+          slotWindow.classList.remove("slot-nudge");
+        } else {
+          await wait(340);
+        }
+      }
+
+      await wait(280);
+    }
+
+    async function runCatSurprise(pool, slotData, tracks, windows, status) {
+      const targetIndex = Math.floor(Math.random() * tracks.length);
+      const currentNames = slotData.map(slot => slot.finalItem.name);
+      const nextItem = differentPick(pool, currentNames);
+      const track = tracks[targetIndex];
+      const slotWindow = windows[targetIndex];
+      const itemHeight = getSlotItemHeight(track);
+      const nextIndex = appendRerollItems(track, pool, nextItem);
+
+      if (status) {
+        status.textContent = "식탁 아래에서 무언가 움직입니다";
+      }
+
+      await wait(320);
+      await runCatVisit(slotWindow, true);
+
+      if (status) {
+        status.textContent = "무언가가 하나를 툭 쳤습니다";
+      }
+
+      await wait(90);
+      await animateTo(
+        track,
+        nextIndex * itemHeight,
+        980,
+        "cubic-bezier(.08,.86,.12,1)"
+      );
+
+      slotData[targetIndex].finalItem = nextItem;
+
+      if (status) {
+        status.textContent = "";
+      }
+
+      resultBox.classList.remove("final-reveal");
+      resultBox.offsetHeight;
+      resultBox.classList.add("final-reveal");
+    }
+
+    async function runCatWatch(status) {
+      if (status) {
+        status.textContent = "식탁 아래에서 무언가 움직입니다";
+      }
+
+      await wait(260);
+      await runCatVisit(null, false);
+
+      if (status) {
+        status.textContent = "무언가가 잠깐 보고만 갔습니다";
+      }
+
+      await wait(620);
+
+      if (status) {
+        status.textContent = "";
+      }
+    }
+
+    function appendRerollItems(track, pool, finalItem) {
+      const count = 13;
+      const fragment = document.createDocumentFragment();
+
+      for (let i = 0; i < count - 1; i++) {
+        const item = i > count - 4
+          ? differentPick(pool, [finalItem.name])
+          : sample(pool, 1)[0];
+        const node = document.createElement("div");
+        node.className = "slot-item";
+        node.textContent = item.name;
+        fragment.appendChild(node);
+      }
+
+      const finalNode = document.createElement("div");
+      finalNode.className = "slot-item";
+      finalNode.textContent = finalItem.name;
+      fragment.appendChild(finalNode);
+      track.appendChild(fragment);
+
+      return track.children.length - 1;
+    }
+
+    function canCatReroll(pool, slotData) {
+      const pickedNames = new Set(slotData.map(slot => slot.finalItem.name));
+      return pool.some(item => !pickedNames.has(item.name));
+    }
+
+    async function revealSlotDetails(slotData) {
+      const details = [...resultInner.querySelectorAll("[data-slot-detail], #slotDetail")];
+
+      for (let i = 0; i < details.length; i++) {
+        const item = slotData[i].finalItem;
+        details[i].textContent = `${item.type} · 대표메뉴: ${item.menu}`;
+        details[i].classList.add("detail-reveal");
+        await wait(85);
+      }
+    }
+
+    function runCatVisit(slotWindow, shouldTap = true) {
+      return new Promise(resolve => {
+        if (!catStage) {
+          resolve();
+          return;
+        }
+
+        catStage.innerHTML = `
+          <div class="cat ${shouldTap ? "cat-tap" : "cat-watch"}">
+            ${shouldTap ? `<div class="desk-item"></div>` : ""}
+            <div class="cat-tail"></div>
+            <div class="cat-body"></div>
+            <div class="cat-head"></div>
+            <div class="cat-face"></div>
+            <div class="cat-whisker left"></div>
+            <div class="cat-whisker right"></div>
+            <div class="cat-mouth"></div>
+            <div class="cat-paw"></div>
+            <div class="cat-paw back"></div>
+          </div>
+        `;
+
+        setTimeout(() => {
+          if (shouldTap && slotWindow) slotWindow.classList.add("slot-nudge");
+        }, 780);
+
+        setTimeout(() => {
+          if (slotWindow) slotWindow.classList.remove("slot-nudge");
+          catStage.innerHTML = "";
+          resolve();
+        }, 1850);
+      });
+    }
+
+    function renderResult(items, isFinal = false) {
+      if (items.length === 1) {
+        const item = items[0];
+        resultInner.innerHTML = `
+          <div class="single-card">
+            ${isFinal ? `<div class="final-label">오늘의 선택</div>` : ""}
+            <div class="restaurant-name">${escapeHtml(item.name)}</div>
+            <div class="restaurant-meta">
+              <span class="pill">종류: ${escapeHtml(item.type)}</span>
+            </div>
+            <div class="menu-line">대표메뉴 · ${escapeHtml(item.menu)}</div>
+          </div>
+        `;
+        return;
+      }
+
+      resultInner.innerHTML = `
+        <div class="multi-list">
+          ${isFinal ? `<div class="final-label">최종 후보</div>` : ""}
+          ${items.map((item, index) => `
+            <div class="multi-item" style="animation-delay:${index * 45}ms">
+              <div class="index">${index + 1}</div>
+              <div>
+                <div class="multi-name">${escapeHtml(item.name)}</div>
+                <div class="multi-detail">${escapeHtml(item.type)} · ${escapeHtml(item.menu)}</div>
+              </div>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function renderAdmin() {
+      if (!restaurantTableBody) return;
+
+      restaurantTableBody.innerHTML = restaurants
+        .map(item => createRestaurantRowHtml(item))
+        .join("");
+
+      renderAdminStats();
+    }
+
+    function createRestaurantRowHtml(item = {}) {
+      const priority = Math.max(1, Math.min(3, Number(item.priority || 2)));
+
+      return `
+        <tr>
+          <td>
+            <input class="restaurant-cell-input" data-field="name" type="text" value="${escapeHtml(item.name || "")}" placeholder="예: 디탕 인하대점" />
+          </td>
+          <td>
+            <input class="restaurant-cell-input" data-field="type" type="text" value="${escapeHtml(item.type || "")}" placeholder="예: 아시안" />
+          </td>
+          <td>
+            <input class="restaurant-cell-input" data-field="menu" type="text" value="${escapeHtml(item.menu || "")}" placeholder="예: 쌀국수, 분짜, 팟타이" />
+          </td>
+          <td>
+            <select class="restaurant-priority-select" data-field="priority">
+              <option value="1"${priority === 1 ? " selected" : ""}>1</option>
+              <option value="2"${priority === 2 ? " selected" : ""}>2</option>
+              <option value="3"${priority === 3 ? " selected" : ""}>3</option>
+            </select>
+          </td>
+          <td>
+            <button class="row-delete-button" type="button" data-action="delete-row" aria-label="식당 삭제">×</button>
+          </td>
+        </tr>
+      `;
+    }
+
+    function addRestaurantRow(item = {}) {
+      if (!restaurantTableBody) return;
+
+      restaurantTableBody.insertAdjacentHTML("beforeend", createRestaurantRowHtml(item));
+      const lastRow = restaurantTableBody.lastElementChild;
+      const firstInput = lastRow?.querySelector("[data-field='name']");
+      if (firstInput) firstInput.focus();
+    }
+
+    function renderAdminStats() {
+      const types = getTypes();
+      totalStat.textContent = restaurants.length;
+      typeStat.textContent = types.length;
+      typeList.innerHTML = types.map(type => `<span>${escapeHtml(type)}</span>`).join("");
+      renderSettings();
+    }
+
+    function renderSettings() {
+      if (!boostRange || !boostInput) return;
+
+      const maxBoost = clampBoost(settings.maxBoost);
+      const midBoost = 1 + ((2 - 1) / 2) * (maxBoost - 1);
+
+      boostRange.value = maxBoost.toFixed(1);
+      boostInput.value = maxBoost.toFixed(1);
+
+      weightP1.textContent = "1.00배";
+      weightP2.textContent = `${midBoost.toFixed(2)}배`;
+      weightP3.textContent = `${maxBoost.toFixed(2)}배`;
+
+      if (adminCodeInput && adminUrlPreview) {
+        const code = String(settings.adminCode || DEFAULT_ADMIN_CODE);
+        adminCodeInput.value = code;
+        adminUrlPreview.textContent = `${location.pathname.split("/").pop() || "index.html"}?admin=${code}`;
+      }
+
+      if (catChanceRange && catChanceInput) {
+        const chance = clampPercent(settings.catChance, 0, 100);
+        catChanceRange.value = chance;
+        catChanceInput.value = chance;
+      }
+
+      if (catWatchRange && catWatchInput) {
+        const watchChance = clampPercent(settings.catWatchChance, 0, 100);
+        catWatchRange.value = watchChance;
+        catWatchInput.value = watchChance;
+      }
+
+      if (probBackText && probStayText && probForwardText) {
+        syncProbabilityControl(probBackRange, probBackInput, settings.moveBackProb);
+        syncProbabilityControl(probStayRange, probStayInput, settings.stayProb);
+        syncProbabilityControl(probForwardRange, probForwardInput, settings.moveForwardProb);
+
+        const probs = getMovementProbabilities();
+        probBackText.textContent = `${Math.round(probs.back)}%`;
+        probStayText.textContent = `${Math.round(probs.stay)}%`;
+        probForwardText.textContent = `${Math.round(probs.forward)}%`;
+      }
+    }
+
+    function updateBoost(value) {
+      settings.maxBoost = clampBoost(value);
+      saveSettings();
+      renderSettings();
+    }
+
+    function updateAdminCode() {
+      if (!adminCodeInput) return;
+
+      const nextCode = normalizeAdminCode(adminCodeInput.value);
+      settings.adminCode = nextCode;
+      saveSettings();
+      renderSettings();
+
+      const fileName = location.pathname.split("/").pop() || "index.html";
+      showToast(`관리자 번호가 ${nextCode}(으)로 변경되었습니다`);
+      adminUrlPreview.textContent = `${fileName}?admin=${nextCode}`;
+    }
+
+    function updateCatChance(value) {
+      settings.catChance = clampPercent(value, 0, 100);
+      saveSettings();
+      renderSettings();
+    }
+
+    function updateCatWatchChance(value) {
+      settings.catWatchChance = clampPercent(value, 0, 100);
+      saveSettings();
+      renderSettings();
+    }
+
+    function syncProbabilityControl(range, input, value) {
+      if (!range || !input) return;
+
+      const clamped = clampPercent(value, 0, 100);
+      range.value = clamped;
+      input.value = clamped;
+    }
+
+    function updateMovementProbability(key, value) {
+      settings[key] = clampPercent(value, 0, 100);
+      saveSettings();
+      renderSettings();
+    }
+
+    function getMovementProbabilities() {
+      const back = clampPercent(settings.moveBackProb, 0, 100);
+      const stay = clampPercent(settings.stayProb, 0, 100);
+      const forward = clampPercent(settings.moveForwardProb, 0, 100);
+      const sum = back + stay + forward;
+
+      if (!sum) {
+        return { back: 0, stay: 100, forward: 0 };
+      }
+
+      return {
+        back: (back / sum) * 100,
+        stay: (stay / sum) * 100,
+        forward: (forward / sum) * 100
+      };
+    }
+
+    function pickMovementOffset() {
+      const probs = getMovementProbabilities();
+      const r = Math.random() * 100;
+
+      if (r < probs.back) return -1;
+      if (r < probs.back + probs.stay) return 0;
+      return 1;
+    }
+
+    function shouldCatAppear() {
+      return Math.random() * 100 < clampPercent(settings.catChance, 0, 100);
+    }
+
+    function shouldCatWatchOnly() {
+      return Math.random() * 100 < clampPercent(settings.catWatchChance, 0, 100);
+    }
+
+    function parseEditor() {
+      if (!restaurantTableBody) return defaultRestaurants;
+
+      const rows = [...restaurantTableBody.querySelectorAll("tr")];
+      const parsed = rows.map(row => {
+        const name = row.querySelector("[data-field='name']")?.value.trim() || "";
+        const type = row.querySelector("[data-field='type']")?.value.trim() || "기타";
+        const menu = row.querySelector("[data-field='menu']")?.value.trim() || "대표메뉴 미입력";
+        const priorityRaw = row.querySelector("[data-field='priority']")?.value || "2";
+        const priority = Math.max(1, Math.min(3, Number(priorityRaw) || 2));
+
+        return {
+          name,
+          type,
+          menu,
+          priority
+        };
+      }).filter(item => item.name);
+
+      return parsed.length ? parsed : defaultRestaurants;
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 1500);
+    }
+
+    function confetti() {
+      const colors = ["#e54835", "#0f8f6a", "#171717", "#d8cbbd"];
+      for (let i = 0; i < 18; i++) {
+        const piece = document.createElement("div");
+        piece.className = "confetti";
+        piece.style.left = `${Math.random() * 100}vw`;
+        piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.animationDuration = `${1.05 + Math.random() * 1.15}s`;
+        piece.style.animationDelay = `${Math.random() * .14}s`;
+        document.body.appendChild(piece);
+        setTimeout(() => piece.remove(), 2400);
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, ch => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      }[ch]));
+    }
+
+    chips.addEventListener("click", event => {
+      const chip = event.target.closest(".chip");
+      if (!chip) return;
+
+      const type = chip.dataset.type;
+
+      if (type === "전체") {
+        selectedTypes.clear();
+      } else {
+        if (selectedTypes.has(type)) selectedTypes.delete(type);
+        else selectedTypes.add(type);
+      }
+
+      [...chips.querySelectorAll(".chip")].forEach(button => {
+        if (button.dataset.type === "전체") {
+          button.classList.toggle("active", selectedTypes.size === 0);
+        } else {
+          button.classList.toggle("active", selectedTypes.has(button.dataset.type));
+        }
+      });
+
+      updateCountOptions();
+    });
+
+    countSelect.addEventListener("change", updateCountOptions);
+    pickButton.addEventListener("click", pickRestaurant);
+
+    if (saveButton) {
+      saveButton.addEventListener("click", () => {
+        restaurants = parseEditor();
+        saveRestaurants();
+
+        const validTypes = new Set(getTypes());
+        selectedTypes = new Set([...selectedTypes].filter(type => validTypes.has(type)));
+
+        renderAdminStats();
+        showToast("식당 목록을 저장했습니다");
+      });
+    }
+
+    if (resetButton) {
+      resetButton.addEventListener("click", () => {
+        restaurants = defaultRestaurants;
+        selectedTypes.clear();
+        saveRestaurants();
+        renderAdmin();
+        showToast("기본 목록으로 복구했습니다");
+      });
+    }
+
+    if (addRestaurantButton) {
+      addRestaurantButton.addEventListener("click", () => {
+        addRestaurantRow({ priority: 2 });
+      });
+    }
+
+    if (restaurantTableBody) {
+      restaurantTableBody.addEventListener("click", event => {
+        const deleteButton = event.target.closest("[data-action='delete-row']");
+        if (!deleteButton) return;
+
+        deleteButton.closest("tr")?.remove();
+      });
+    }
+
+    if (boostRange && boostInput) {
+      boostRange.addEventListener("input", event => {
+        updateBoost(event.target.value);
+      });
+
+      boostInput.addEventListener("input", event => {
+        updateBoost(event.target.value);
+      });
+    }
+
+    if (adminCodeButton && adminCodeInput) {
+      adminCodeButton.addEventListener("click", updateAdminCode);
+
+      adminCodeInput.addEventListener("keydown", event => {
+        if (event.key === "Enter") updateAdminCode();
+      });
+    }
+
+    if (catChanceRange && catChanceInput) {
+      catChanceRange.addEventListener("input", event => {
+        updateCatChance(event.target.value);
+      });
+
+      catChanceInput.addEventListener("input", event => {
+        updateCatChance(event.target.value);
+      });
+    }
+
+    if (catWatchRange && catWatchInput) {
+      catWatchRange.addEventListener("input", event => {
+        updateCatWatchChance(event.target.value);
+      });
+
+      catWatchInput.addEventListener("input", event => {
+        updateCatWatchChance(event.target.value);
+      });
+    }
+
+    [
+      [probBackRange, probBackInput, "moveBackProb"],
+      [probStayRange, probStayInput, "stayProb"],
+      [probForwardRange, probForwardInput, "moveForwardProb"]
+    ].forEach(([range, input, key]) => {
+      if (!range || !input) return;
+
+      range.addEventListener("input", event => {
+        updateMovementProbability(key, event.target.value);
+      });
+
+      input.addEventListener("input", event => {
+        updateMovementProbability(key, event.target.value);
+      });
+    });
+
+    renderUser();
+    renderAdmin();
+  </script>
+</body>
+</html>
