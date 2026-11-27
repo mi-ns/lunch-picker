@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>인하대 후문 점심 뽑기</title>
+  <link rel="stylesheet" href="./assets/jackpot.css">
   <style>
     :root {
       --bg: #f8fafc;
@@ -2107,6 +2108,7 @@
       </section>
 
       <button class="pick-button" id="pickButton">랜덤으로 고르기</button>
+      <div class="jackpot-sound-row"><button type="button" data-jackpot-sound aria-pressed="true">효과음 켜짐</button></div>
       <div class="room-strip">
         <div class="room-strip-top"><span id="roomLabel">공용 점심 뽑기</span><button type="button" class="room-text" id="roomToggle">방 입장 · 만들기</button></div>
         <div id="roomActive" hidden class="room-actions"><button type="button" class="room-text" id="copyInvite">초대 코드 복사</button><a id="adminLink" href="?admin=1">방 관리자</a><button type="button" class="room-text" id="leaveRoom">나가기</button></div>
@@ -2298,6 +2300,7 @@
 
   <script src="./assets/cat-motion.js"></script>
   <script src="./assets/hamster-motion.js"></script>
+  <script src="./assets/jackpot-motion.js"></script>
   <script>
     const defaultRestaurants = [
       { name: "킹콩순두부", type: "한식", menu: "순두부찌개", priority: 3 },
@@ -2552,6 +2555,7 @@
     async function pickRestaurant() {
       if (!configReady) { await initializeShared(); return; }
       if (pickButton.disabled) return;
+      window.LunchJackpot?.prime();
       pickButton.disabled = true;
       try {
         const oldTypes = getTypes().join("|");
@@ -2706,8 +2710,7 @@
       }
 
       resultBox.classList.remove("rolling");
-      resultBox.classList.add("final-reveal");
-      confetti();
+      if(event !== "jackpot"){resultBox.classList.add("final-reveal");confetti();}
 
       if (event === "jackpot" && tracks.length >= 3) {
         await runJackpot(pool, slotData, tracks, windows, status);
@@ -2860,21 +2863,20 @@
     async function runJackpot(pool, slotData, tracks, windows, status) {
       const winner=sample(pool,1)[0];
       if(!winner||slotData.length<3)return;
-      resultBox.classList.add("jackpot-active");
-      try {
-        if(status){status.textContent="어라...?";status.classList.add("jackpot-status");}
-        await wait(240);
+      const spin=async()=>{
         const targets=tracks.map(track=>({track,index:appendRerollItems(track,pool,winner),height:getSlotItemHeight(track)}));
         await Promise.all(targets.map(async({track,index,height},i)=>{
-          await wait(i*115);
-          await animateTo(track,index*height,900,"cubic-bezier(.12,.76,.18,1)");
-          windows[i]?.classList.add("jackpot-window");
+          await animateTo(track,index*height,1180,"cubic-bezier(.13,.72,.19,1)");
           slotData[i].finalItem=winner;
         }));
-        if(status)status.textContent="JACKPOT!";
-        confetti();confetti();
-        await wait(850);
-      }finally{resultBox.classList.remove("jackpot-active");}
+      };
+      if(window.LunchJackpot){
+        await window.LunchJackpot.run({stage:resultBox,windows,status,spin});
+      }else{
+        await spin();windows.forEach(w=>w.classList.add("jackpot-window"));
+        if(status){status.textContent="JACKPOT!";status.classList.add("jackpot-status");}
+        confetti();
+      }
     }
 
     async function runCatSurprise(pool, slotData, tracks, windows, status) {
@@ -3381,6 +3383,6 @@
       document.head.appendChild(analyticsScript);
     }
   </script>
-  <footer style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:11px;color:#64748b;pointer-events:none">v2.3.1 · 2026.11.27</footer>
+  <footer style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:11px;color:#64748b;pointer-events:none">v2.4.0 · 2026.11.27</footer>
 </body>
 </html>

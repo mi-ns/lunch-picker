@@ -1,0 +1,25 @@
+
+/* Shared jackpot show for the real picker and preview. */
+.jackpot-sound-row{display:flex;justify-content:flex-end;margin:7px 0 0}
+[data-jackpot-sound]{border:0;background:transparent;color:#82786e;font-size:11px;cursor:pointer;padding:4px 2px}
+[data-jackpot-sound]:focus-visible{outline:2px solid #c99042;border-radius:4px}
+[data-jackpot-sound][aria-pressed="false"]{opacity:.7}
+.j-show{position:relative;isolation:isolate}
+.j-marquee{position:absolute;inset:5px;z-index:15;pointer-events:none;border:1px solid #a97838;border-radius:15px;opacity:0;transition:opacity .25s ease;box-shadow:inset 0 0 15px #c6954830}
+.j-show .j-marquee{opacity:1}
+.j-bulb{position:absolute;width:6px;height:6px;border-radius:50%;background:#604625;box-shadow:0 0 2px #0007;transform:translate(-50%,-50%);transition:background .13s,box-shadow .13s}
+.j-bulb.lit{background:#ffda8d;box-shadow:0 0 7px 2px #efb24e99}
+.j-show .j-await{border-color:#936c35!important;transition:border-color .18s,box-shadow .18s}
+.j-show .j-focus{border-color:#ffda8d!important;box-shadow:inset 0 0 18px #fbc76238,0 0 13px #ffc86d66!important}
+.j-show .j-spin{border-color:#eac27a!important;box-shadow:inset 0 0 16px #d7a75022!important}
+.j-won{border-color:#f5cd80!important;box-shadow:inset 0 0 16px #ffcd6b25,0 0 8px #efb84d44!important}
+.j-show .j-won{animation:j-win-lock .7s ease-out both}
+.j-message{position:absolute;z-index:18;inset:0;display:grid;place-items:center;pointer-events:none}
+.j-title{font-size:clamp(32px,9vw,60px);font-family:Georgia,"Times New Roman",serif;font-weight:900;line-height:1;letter-spacing:.025em;color:#ffdf96;text-shadow:0 2px 0 #a96d24,0 4px 0 #794719,0 0 20px #ffc56188;background:linear-gradient(110deg,#35210f,#1e1712 45%,#35210f);border:2px solid #f3c578;border-radius:12px;padding:14px 20px;box-shadow:0 10px 28px #0007,0 0 18px #efbb4e55;animation:j-title-pop 1.2s ease-out both;white-space:nowrap}
+.j-coin{position:absolute;z-index:17;left:50%;top:50%;width:var(--sz);height:var(--sz);border-radius:2px;background:var(--color);pointer-events:none;animation:j-coin-burst .95s ease-out both}
+.j-show .j-count{color:#e9bd78!important;font-variant-numeric:tabular-nums;letter-spacing:.19em;font-size:12px!important;font-weight:900}
+.j-final-status{color:#ffda83!important;font-weight:950!important;font-size:22px!important;letter-spacing:.13em;text-shadow:0 0 10px #d5a35366}
+@keyframes j-title-pop{0%{opacity:0;transform:scale(.65)}18%{opacity:1;transform:scale(1.06)}35%,82%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1)}}
+@keyframes j-win-lock{0%{transform:scale(.985)}24%{transform:scale(1.015)}100%{transform:scale(1)}}
+@keyframes j-coin-burst{0%{opacity:0;transform:translate(-50%,-50%) scale(.5)}12%{opacity:1}75%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) rotate(var(--rot))}}
+@media(prefers-reduced-motion:reduce){.j-title,.j-coin,.j-show .j-won{animation:none!important}.j-bulb{transition:none}.j-coin{display:none}.j-title{opacity:1}}

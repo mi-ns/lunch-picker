@@ -1,5 +1,10 @@
 # Changelog
 
+## v2.4.0 — 2026-11-27
+- Added shared casino-inspired jackpot buildup: five rising original synthesized chimes, sequential gold slot lights, synchronized reels, gold marquee and celebratory burst.
+- Added browser-local sound toggle; audio unlocks on user interaction, and unavailable audio never blocks the draw. Reduced-motion fallback included.
+- Jackpot still requires 3+ slots, probability unchanged. Preview and live draw share the same effects module.
+
 ## v2.3.1 — 2026-11-27
 - Hamster moves strictly top-to-bottom along one fixed vertical lane, with no sideways drift during skips, running, or exit.
 - Non-target slots retain jump/drop animation and unchanged results. No probability or data changes.
