@@ -21,31 +21,61 @@ function draw(ctx,phase,run,flip){
  ctx.restore();
  const img=ctx.getImageData(0,0,W,H);for(let i=3;i<img.data.length;i+=4)img.data[i]=img.data[i]<128?0:255;ctx.putImageData(img,0,0);
 }
-async function visit(stage,target,onRun){
- if(!stage||window.matchMedia("(prefers-reduced-motion: reduce)").matches){await onRun();return;}
- const b=stage.getBoundingClientRect(),q=(target||stage).getBoundingClientRect();
- const width=Math.min(100,Math.max(68,b.width*.24)),height=width*H/W;
- const x=clamp(q.left-b.left+q.width*.60-width/2,2,Math.max(2,b.width-width-2));
- const y=clamp(q.top-b.top-height*.85,0,Math.max(0,b.height-height));
+async function visit({stage,windows=[],targetIndices=[],onRun=()=>{}}){
+ const targets=new Set(targetIndices.filter(i=>Number.isInteger(i)&&i>=0&&i<windows.length));
+ if(!windows.length)return;
+ if(!stage||window.matchMedia("(prefers-reduced-motion: reduce)").matches){for(let i=0;i<windows.length;i++)if(targets.has(i))await onRun(i);return;}
+ const bounds=stage.getBoundingClientRect();
+ const width=Math.min(66,Math.max(42,bounds.width*.145)),height=width*H/W;
+ const anchors=windows.map(win=>{
+   const q=win.getBoundingClientRect();
+   return {x:clamp(q.left-bounds.left+q.width*.72-width/2,2,Math.max(2,bounds.width-width-2)),y:q.top-bounds.top-height*.86};
+ });
  const canvas=document.createElement("canvas");canvas.width=W;canvas.height=H;canvas.className="hamster-sprite-canvas";canvas.setAttribute("aria-hidden","true");
- Object.assign(canvas.style,{position:"absolute",width:width+"px",height:height+"px",top:y+"px",left:b.width+"px",pointerEvents:"none",imageRendering:"pixelated",zIndex:"12"});
- const ctx=canvas.getContext("2d",{willReadFrequently:true});if(!ctx){await onRun();return;}stage.appendChild(canvas);
- let start=null,task=null;
- try{
- await new Promise((resolve,reject)=>{
- function tick(now){try{if(start===null)start=now;const t=Math.max(0,now-start);
- if(t>=850&&!task){task=Promise.resolve().then(onRun);task.catch(()=>{});}
- if(t>=3100){resolve();return;}
- let left=x,run=true,flip=false,phase=t/95;
- if(t<700){left=b.width+(x-b.width)*smooth(t/700);}
- else if(t<850){run=false;}
- else if(t<2350){phase=t/38;}
- else if(t<2500){run=false;}
- else {flip=true;left=x+(b.width-x)*smooth((t-2500)/600);}
- canvas.style.left=left+"px";draw(ctx,phase,run,flip);requestAnimationFrame(tick);
- }catch(e){reject(e);}}
- requestAnimationFrame(tick);
- });if(task)await task;
+ Object.assign(canvas.style,{position:"absolute",width:width+"px",height:height+"px",pointerEvents:"none",imageRendering:"pixelated",zIndex:"12",left:anchors[0].x+"px",top:-height+"px"});
+ const ctx=canvas.getContext("2d",{willReadFrequently:true});
+ if(!ctx){for(let i=0;i<windows.length;i++)if(targets.has(i))await onRun(i);return;}
+ stage.appendChild(canvas);
+ let pos={x:anchors[0].x,y:-height},phase=0;
+ function paint(point,running=false,jump=false){
+   canvas.style.left=point.x+"px";canvas.style.top=point.y+"px";
+   canvas.style.transform=jump?"rotate(7deg)":"none";
+   draw(ctx,phase,running,false);
+ }
+ function tween(ms,fn){
+   return new Promise((resolve,reject)=>{
+    let start=null;
+    function frame(now){try{if(start===null)start=now;const elapsed=Math.max(0,now-start),t=clamp(elapsed/ms,0,1);fn(t,elapsed);if(t>=1)resolve();else requestAnimationFrame(frame);}catch(e){reject(e);}}
+    requestAnimationFrame(frame);
+   });
+ }
+ async function move(to,duration,arc=0){
+   const from={...pos};
+   await tween(duration,(t,elapsed)=>{
+     const q=smooth(t);
+     phase=elapsed/80;
+     paint({x:from.x+(to.x-from.x)*q+Math.sin(Math.PI*t)*(arc?8:0),y:from.y+(to.y-from.y)*q-Math.sin(Math.PI*t)*arc},false,arc>0&&t>.1&&t<.9);
+   });
+   pos=to;
+ }
+ try {
+   for(let i=0;i<anchors.length;i++){
+     const anchor=anchors[i];
+     if(targets.has(i)){
+       await move(anchor,i===0?360:300,12);
+       paint(anchor);await tween(100,()=>paint(anchor));
+       const reroll=Promise.resolve().then(()=>onRun(i));reroll.catch(()=>{});
+       await Promise.all([reroll,tween(1080,(t,elapsed)=>{
+         phase=elapsed/35;paint({x:anchor.x+Math.sin(phase)*1.1,y:anchor.y},true);
+       })]);
+       paint(anchor);
+     }else{
+       // Fly past the slot without touching its top or starting a reroll.
+       const flyby={x:clamp(anchor.x+width*.65,2,Math.max(2,bounds.width-width-2)),y:anchor.y+height*.65};
+       await move(flyby,i===0?280:240,18);
+     }
+   }
+   await move({x:clamp(pos.x+10,2,Math.max(2,bounds.width-width-2)),y:bounds.height+height+8},380,14);
  }finally{canvas.remove();}
 }
 window.LunchHamster={visit,draw};

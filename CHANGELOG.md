@@ -1,5 +1,10 @@
 # Changelog
 
+## v2.3.0 — 2026-11-27
+- Four separately rendered 16-frame coat sprites: original ginger, mackerel tabby, charcoal tuxedo with white markings, calico patches. Exact original motion and silhouette retained; no runtime recoloring.
+- Smaller hamster enters from above and visits slots in order. Runs only on randomly selected slots, jumps past the others, exits below. Preserves unique results; no reroll when no unused restaurants exist.
+- Five-slot event preview demonstrates selective reroll on slots 2 and 4. Existing probabilities, jackpot rule and room data unchanged.
+
 ## v2.2.0 — 2026-11-27
 - Added hamster treadmill reroll (default 3%) and jackpot (default 1%, only 3+ slots, all slots match).
 - Mutually exclusive events; normalize if eligible event probabilities exceed 100%. Cat probability and watch settings retained; four color variants reuse same motion.

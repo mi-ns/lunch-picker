@@ -1,13 +1,24 @@
 (() => {
   "use strict";
   const W = 112, H = 79;
-  const sheet = new Image();
-  const ready = new Promise((resolve,reject) => {
-    sheet.onload = () => sheet.naturalWidth === W*4 && sheet.naturalHeight === H*4 ? resolve() : reject(new Error("Invalid sprite dimensions"));
-    sheet.onerror = () => reject(new Error("Sprite load failed"));
-    sheet.src = new URL("./cat-sprite.png", document.currentScript.src).href;
-  });
-  ready.catch(() => {});
+  const assetBase = document.currentScript.src;
+  const skins={ginger:"cat-sprite.png",mackerel:"cat-mackerel.png",tuxedo:"cat-tuxedo.png",calico:"cat-calico.png"};
+  const sheets=new Map();
+  function loadSkin(name){
+    if(!sheets.has(name)){
+      const file=skins[name];
+      const promise=new Promise((resolve,reject)=>{
+        const image=new Image();
+        image.onload=()=>image.naturalWidth===W*4&&image.naturalHeight===H*4?resolve(image):reject(new Error("Invalid sprite dimensions"));
+        image.onerror=()=>reject(new Error("Sprite load failed"));
+        image.src=new URL("./"+file,assetBase).href;
+      });
+      sheets.set(name,promise);
+      promise.catch(()=>sheets.delete(name));
+    }
+    return sheets.get(name);
+  }
+  Object.keys(skins).forEach(name=>loadSkin(name).catch(()=>{}));
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
   const walk=[0,1,13,15,12,14];
   const smooth=t=>t*t*(3-2*t);
@@ -25,24 +36,10 @@
     if(t<leave) return {frame:t<leave-100?14:15,progress:1,facing:-1};
     return {frame:walk[Math.floor((t-leave)/100)%walk.length],progress:1-smooth(clamp((t-leave)/850,0,1)),facing:1};
   }
-  const variantsCache=new Map();
-  function makeVariant(style){
-    if(variantsCache.has(style))return variantsCache.get(style);
-    const art=document.createElement("canvas");art.width=sheet.naturalWidth;art.height=sheet.naturalHeight;
-    const c=art.getContext("2d",{willReadFrequently:true});if(!c)return sheet;c.drawImage(sheet,0,0);
-    const img=c.getImageData(0,0,art.width,art.height),p=img.data;
-    for(let i=0;i<p.length;i+=4){
-      const r=p[i],g=p[i+1],b=p[i+2];if(p[i+3]===0)continue;
-      if(r-g<16||g-b<8||r-b<35||r<100||g<40)continue;
-      const l=.299*r+.587*g+.114*b;
-      if(style==="grey"){p[i]=Math.min(255,l*.89+12);p[i+1]=Math.min(255,l*.95+12);p[i+2]=Math.min(255,l+17);}
-      else if(style==="tuxedo"){p[i]=l*.35+12;p[i+1]=l*.37+13;p[i+2]=l*.40+17;}
-      else {p[i]=Math.min(255,l*.55+112);p[i+1]=Math.min(255,l*.52+104);p[i+2]=Math.min(255,l*.50+94);}
-    }
-    c.putImageData(img,0,0);variantsCache.set(style,art);return art;
-  }
   async function visit(stage,target,hit=true,onImpact=()=>{},opts={}){
-    await ready;
+    const variants=Object.keys(skins);
+    const style=variants.includes(opts.variant)?opts.variant:variants[Math.floor(Math.random()*variants.length)];
+    let sheet;try{sheet=await loadSkin(style);}catch(e){if(style==="ginger")throw e;sheet=await loadSkin("ginger");}
     const reduced=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if(reduced){if(hit)await onImpact();return;}
     const bounds=stage.getBoundingClientRect(), box=(target||stage).getBoundingClientRect();
@@ -55,10 +52,7 @@
     stage.appendChild(canvas);
     const speed=clamp(Number(opts.speed)||1,.4,2),end=hit?2720:2270;
     let start=null,impactTask=null;
-    const variants=["ginger","grey","tuxedo","cream"];
-    const style=variants.includes(opts.variant)?opts.variant:variants[Math.floor(Math.random()*variants.length)];
-    const tinted=style==="ginger"?sheet:makeVariant(style);
-    function draw(frame,facing){ctx.clearRect(0,0,W,H);ctx.save();if(facing<0){ctx.translate(W,0);ctx.scale(-1,1);}ctx.drawImage(tinted,frame%4*W,Math.floor(frame/4)*H,W,H,0,0,W,H);ctx.restore();}
+    function draw(frame,facing){ctx.clearRect(0,0,W,H);ctx.save();if(facing<0){ctx.translate(W,0);ctx.scale(-1,1);}ctx.drawImage(sheet,frame%4*W,Math.floor(frame/4)*H,W,H,0,0,W,H);ctx.restore();}
     try {
       await new Promise((resolve,reject)=>{
         function step(now){

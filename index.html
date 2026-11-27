@@ -2261,7 +2261,7 @@
         <div class="setting-box">
           <h2 class="setting-title">고양이 이스터에그</h2>
           <p class="setting-desc">
-            시행당 확률입니다. 고양이는 같은 모션으로 네 가지 털 색 중 하나가 등장합니다.
+            시행당 확률입니다. 치즈냥 · 고등어 · 턱시도 · 삼색이가 동일한 모션으로 등장합니다.
           </p>
 
           <div class="admin-percent-row">
@@ -2280,7 +2280,7 @@
         </div>
         <div class="setting-box">
           <h2 class="setting-title">햄스터 이스터에그</h2>
-          <p class="setting-desc">룰렛 위에서 뛰는 동안 다시 추첨합니다. 중복 없이 뽑습니다.</p>
+          <p class="setting-desc">위에서 아래로 슬롯을 순회하며 일부 슬롯 위에서만 달립니다. 나머지는 점프로 통과하며, 결과는 중복되지 않습니다.</p>
           <div class="admin-percent-row"><input id="hamsterChanceRange" type="range" min="0" max="100" step=".1"><input id="hamsterChanceInput" class="percent-input" type="number" min="0" max="100" step=".1"></div>
         </div>
         <div class="setting-box">
@@ -2820,22 +2820,40 @@
       return null;
     }
 
+    function planHamster(pool, slotData, random=Math.random) {
+      const names = new Set(slotData.map(slot=>slot.finalItem.name));
+      const available = pool.filter(item=>!names.has(item.name));
+      const uniqueAvailable = [...new Map(available.map(item=>[item.name,item])).values()];
+      const count=slotData.length;
+      if(!count || !uniqueAvailable.length)return new Map();
+      const maxTargets=Math.min(uniqueAvailable.length,count,count===3?2:Math.max(1,Math.floor(count/2)));
+      const n=1+Math.floor(random()*maxTargets);
+      const indices=Array.from({length:count},(_,i)=>i);
+      for(let i=indices.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[indices[i],indices[j]]=[indices[j],indices[i]];}
+      const targets=indices.slice(0,n).sort((a,b)=>a-b);
+      const next=sample(uniqueAvailable,n);
+      return new Map(targets.map((slot,i)=>[slot,next[i]]));
+    }
+
     async function runHamster(pool, slotData, tracks, windows, status) {
-      const next=sample(pool,slotData.length);
-      const animate=async()=>{
-        if(status)status.textContent="";
-        const targets=tracks.map((track,i)=>({track,index:appendRerollItems(track,pool,next[i]),height:getSlotItemHeight(track)}));
-        await Promise.all(targets.map(({track,index,height})=>animateTo(track,index*height,1500,"linear")));
-        next.forEach((item,i)=>{slotData[i].finalItem=item;});
+      const targets=planHamster(pool,slotData),tasks=new Map();
+      const reroll=(i)=>{
+        if(!targets.has(i))return Promise.resolve();
+        if(tasks.has(i))return tasks.get(i);
+        const task=(async()=>{
+          const track=tracks[i], item=targets.get(i);
+          if(status)status.textContent="";
+          const nextIndex=appendRerollItems(track,pool,item);
+          await animateTo(track,nextIndex*getSlotItemHeight(track),1050,"linear");
+          slotData[i].finalItem=item;
+        })();
+        tasks.set(i,task);return task;
       };
       if(status)status.textContent="뭔가 바쁘게 움직입니다";
-      let task=null;
-      const start=()=>task||(task=animate());
       try {
-        if(window.LunchHamster)await window.LunchHamster.visit(catStage,windows[0],start);
-        else await start();
-      }catch(e){console.warn("Hamster animation fallback",e);await start();}
-      if(task)await task;
+        if(window.LunchHamster)await window.LunchHamster.visit({stage:catStage,windows,targetIndices:[...targets.keys()],onRun:reroll});
+        else for(const i of targets.keys())await reroll(i);
+      }catch(e){console.warn("Hamster animation fallback",e);for(const i of targets.keys())await reroll(i);}
       if(status)status.textContent="";
     }
 
@@ -3363,6 +3381,6 @@
       document.head.appendChild(analyticsScript);
     }
   </script>
-  <footer style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:11px;color:#64748b;pointer-events:none">v2.2.0 · 2026.11.27</footer>
+  <footer style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:11px;color:#64748b;pointer-events:none">v2.3.0 · 2026.11.27</footer>
 </body>
 </html>
