@@ -247,6 +247,8 @@
     "catWatchChance": 35,
     "moveBackProb": 20,
     "stayProb": 60,
-    "moveForwardProb": 20
+    "moveForwardProb": 20,
+    "hamsterChance": 3,
+    "jackpotChance": 1
   }
 }

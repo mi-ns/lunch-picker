@@ -3,7 +3,7 @@ const defaults=require("../config.json");
 const COOKIE="__Host-lunch_room_admin";
 const TTL=8*60*60, HISTORY_LIMIT=20;
 const alphabet="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-const spec={maxBoost:[1,3],catChance:[0,100],catWatchChance:[0,100],moveBackProb:[0,100],stayProb:[0,100],moveForwardProb:[0,100]};
+const spec={maxBoost:[1,3],catChance:[0,100],catWatchChance:[0,100],hamsterChance:[0,100],jackpotChance:[0,100],moveBackProb:[0,100],stayProb:[0,100],moveForwardProb:[0,100]};
 const hash=x=>crypto.createHash("sha256").update(x).digest("hex");
 const configured=()=>!!((process.env.UPSTASH_REDIS_REST_URL||process.env.KV_REST_API_URL)&&(process.env.UPSTASH_REDIS_REST_TOKEN||process.env.KV_REST_API_TOKEN));
 function err(status,message){const e=Error(message);e.status=status;return e;}
@@ -21,7 +21,7 @@ function textField(value,max,label){if(typeof value!=="string")throw err(400,lab
 function cleanConfig(body){
  if(!Array.isArray(body.restaurants)||body.restaurants.length<1||body.restaurants.length>200||!body.settings)throw err(400,"식당 목록 또는 설정을 확인하세요.");
  const names=new Set();const restaurants=body.restaurants.map(i=>{if(!i||!Number.isInteger(i.priority)||i.priority<1||i.priority>3)throw err(400,"우선도는 1~3이어야 합니다.");const name=textField(i.name,30,"식당명"),type=textField(i.type,20,"종류"),menu=textField(i.menu,80,"대표메뉴");const key=name.toLowerCase().replace(/\s+/g,"");if(names.has(key))throw err(400,"중복 식당명: "+name);names.add(key);return {name,type,menu,priority:i.priority};});
- const settings={};for(const [key,[min,max]] of Object.entries(spec)){const v=body.settings[key];if(typeof v!=="number"||!Number.isFinite(v)||v<min||v>max)throw err(400,"확률 설정 범위 오류");settings[key]=v;}return {restaurants,settings};
+ const settings={};for(const [key,[min,max]] of Object.entries(spec)){const v=body.settings[key]===undefined && (key==="hamsterChance"||key==="jackpotChance") ? defaults.settings[key] : body.settings[key];if(typeof v!=="number"||!Number.isFinite(v)||v<min||v>max)throw err(400,"확률 설정 범위 오류");settings[key]=v;}return {restaurants,settings};
 }
 function pinHash(pin,salt){return crypto.scryptSync(pin,salt,32).toString("hex");}
 function validPin(pin){return typeof pin==="string"&&/^\d{6}$/.test(pin);}

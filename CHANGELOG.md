@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.2.0 — 2026-11-27
+- Added hamster treadmill reroll (default 3%) and jackpot (default 1%, only 3+ slots, all slots match).
+- Mutually exclusive events; normalize if eligible event probabilities exceed 100%. Cat probability and watch settings retained; four color variants reuse same motion.
+- Room settings support new chances; old room/history data receives defaults for missing keys. Normal and hamster draws remain unique.
+- Added event-preview.html for manual testing.
+
 ## v2.1.0 — 2026-11-27
 - Replaced geometric cat animation with the approved 16-frame pixel-art kitten sprite, transparent background, walk/peek/paw strike/exit animation.
 - Synchronized actual reroll with the strike; preserved cat probabilities and room settings. Original CSS cat remains a fallback if sprite fails.
