@@ -1,5 +1,10 @@
 # Changelog
 
+## v2.5.1 — 2026-11-27
+- Warm gray-brown mackerel coat instead of cool gray.
+- Tuxedo coat has black legs and reduced ivory chest and muzzle patches, matching approved color direction.
+- Original 16-frame silhouettes and timing preserved; no probability or other event changes.
+
 ## v2.5.0 — 2026-11-27
 - Jackpot reels stop individually from top to bottom, with an ascending chime at each lock and fanfare only after the final match.
 - Revised three coat sprites with unstriped tuxedo and patch-based calico, and cooler tabby markings; original 16-frame motion retained.
