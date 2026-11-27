@@ -2,7 +2,7 @@
   "use strict";
   const W = 112, H = 79;
   const assetBase = document.currentScript.src;
-  const skins={ginger:"cat-sprite.png",mackerel:"cat-mackerel.png",tuxedo:"cat-tuxedo.png",calico:"cat-calico.png"};
+  const skins={ginger:"cat-sprite.png",mackerel:"cat-mackerel.png?v=2.5.4",tuxedo:"cat-tuxedo.png?v=2.5.4",calico:"cat-calico.png"};
   const sheets=new Map();
   function loadSkin(name){
     if(!sheets.has(name)){

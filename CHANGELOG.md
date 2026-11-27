@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.5.4 — 2026-11-27
+- Restored explicit transparency for the background palette entry in mackerel and tuxedo sprites, fixing black backgrounds without changing visible cat pixels or animation frames.
+- Added asset cache version for the corrected sprites in the main page and previews.
+
 ## v2.5.3 — 2026-11-27
 - Simplified public README and separated operator-only configuration documentation.
 - Explained invite codes, group-specific restaurant lists and draw weights, and separate administrator PIN authentication in the README and room lobby.
