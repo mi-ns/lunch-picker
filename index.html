@@ -2080,6 +2080,11 @@
     .jackpot-active{animation:jackpotFlash .75s ease-out 2}
     .jackpot-status{font-size:22px!important;font-weight:950!important;letter-spacing:.12em;color:#ffda83!important;text-shadow:0 0 12px #ffb93166}
     @keyframes jackpotFlash{50%{box-shadow:inset 0 0 35px #efbd5233,0 0 18px #efbd5244}}
+
+.admin-tabs{display:flex;gap:6px;padding:5px;background:#eee8df;border:1px solid var(--line);border-radius:15px;margin-bottom:16px;width:fit-content}.admin-tabs button{background:transparent;border:0;border-radius:11px;padding:11px 22px;font:inherit;font-size:14px;font-weight:800;color:var(--muted);cursor:pointer}.admin-tabs button[aria-selected="true"]{background:var(--card);color:var(--ink);box-shadow:0 2px 8px #34291a14}.admin-tabs button:focus-visible{outline:2px solid var(--accent)}
+.probability-summary{margin-bottom:16px}.prob-summary-head{display:flex;align-items:start;justify-content:space-between;gap:12px}.prob-summary-head label{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);white-space:nowrap}.prob-summary-head select{width:auto;min-width:70px;height:38px}.event-bar{display:flex;height:12px;overflow:hidden;border-radius:8px;background:#e8e1d6;margin:16px 0}.event-bar span{height:100%;transition:width .15s}.event-prob-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.event-prob-cell{border:1px solid var(--line);background:#fffaf3;border-radius:12px;padding:12px;min-width:0}.event-prob-cell span{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}.event-prob-cell i{display:inline-block;width:8px;height:8px;border-radius:50%;flex:none}.event-prob-cell b{display:block;font-size:23px;margin-top:5px;font-variant-numeric:tabular-nums}.preview-link{display:inline-block;margin-top:8px;font-size:13px;font-weight:800;color:var(--accent-dark)}
+.probability-settings{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start}.probability-settings .setting-box{margin:0;min-width:0}.admin-save-bar{position:sticky;bottom:20px;z-index:20;display:flex;align-items:center;gap:8px;margin-top:16px;padding:12px 14px;border:1px solid var(--line);border-radius:16px;background:var(--card);box-shadow:0 5px 24px #34291a20}.admin-save-bar div{flex:1;min-width:0}.admin-save-bar b,.admin-save-bar small{display:block}.admin-save-bar small{font-size:11px;color:var(--muted);margin-top:3px}.admin-save-bar button{padding:0 16px;white-space:nowrap}
+@media(max-width:640px){.probability-settings{grid-template-columns:1fr;padding:14px}.event-prob-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.prob-summary-head{flex-wrap:wrap}.admin-save-bar{flex-wrap:wrap;bottom:8px;padding:9px}.admin-save-bar div{flex-basis:100%}.admin-save-bar button{flex:1;height:42px}.admin-tabs{width:100%}.admin-tabs button{flex:1;padding:11px 10px}}
   </style>
 </head>
 <body>
@@ -2126,7 +2131,7 @@
     <header class="admin-header">
       <div class="admin-title">
         <div class="badge">관리자 화면</div>
-        <h1>방 식당 목록 관리</h1>
+        <h1>방 설정 관리</h1>
         <p>이 방의 식당 목록과 확률만 수정합니다. 공용 목록 및 다른 방에는 영향을 주지 않습니다.</p>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="admin-button" id="adminLogout" hidden style="padding:0 16px">로그아웃</button><a class="view-link" id="viewLink" href="./">일반 화면으로 보기</a></div>
@@ -2142,7 +2147,9 @@
       </form>
       <p id="adminLoginMessage" class="admin-note" role="status" aria-live="polite"></p>
     </section>
-    <section class="admin-grid" id="adminControls" hidden>
+    <section id="adminControls" hidden>
+<nav class="admin-tabs" role="tablist" aria-label="관리 메뉴"><button type="button" id="restaurantTab" role="tab" aria-selected="true" aria-controls="restaurantPanel">식당 관리</button><button type="button" id="probabilityTab" role="tab" aria-selected="false" aria-controls="probabilityPanel" tabindex="-1">확률 설정</button></nav>
+<div class="admin-grid" id="restaurantPanel" role="tabpanel" aria-labelledby="restaurantTab">
       <div class="admin-card">
         <h2>식당 목록</h2>
         <p class="admin-note">
@@ -2172,10 +2179,7 @@
             <tbody id="restaurantTableBody"></tbody>
           </table>
         </div>
-        <div class="admin-actions">
-          <button class="admin-button primary" id="saveButton">이 방에 저장</button>
-          <button class="admin-button danger" id="resetButton">변경 취소</button>
-        </div>
+
       </div>
 
       <aside class="admin-card">
@@ -2193,8 +2197,12 @@
         <div class="type-list" id="typeList"></div>
 
         <div class="setting-box"><h2 class="setting-title">변경 이력 · 복구</h2><p class="setting-desc">최근 20개 버전 · 공용 PIN 인증 관리자</p><div id="roomHistory"></div></div>
-        <div class="setting-box">
-          <h2 class="setting-title">뽑기 가중치</h2>
+</aside></div>
+<div id="probabilityPanel" role="tabpanel" aria-labelledby="probabilityTab" hidden>
+<div class="admin-card probability-summary">
+<div class="prob-summary-head"><div><h2>실제 등장 확률</h2><p class="admin-note">설정값을 변경하면 즉시 반영됩니다. 한 추첨에는 최대 하나의 이벤트만 발생합니다.</p></div><label>추천 개수 <select id="probabilityCount" class="count-select"><option value="1">1개</option><option value="2">2개</option><option value="3" selected>3개</option><option value="4">4개</option><option value="5">5개</option><option value="6">6개</option></select></label></div>
+<div class="event-bar" id="eventProbabilityBar" aria-hidden="true"></div><div class="event-prob-grid" id="eventProbabilityGrid"></div><p class="admin-note" id="actualChanceNote"></p><p class="admin-note" id="actualCatNote"></p><a class="preview-link" href="./event-preview.html" target="_blank" rel="noopener">이스터에그 테스트 ↗</a></div>
+<div class="admin-card probability-settings"><div class="setting-box"><h2 class="setting-title">뽑기 가중치</h2>
           <p class="setting-desc">
             우선도 3인 식당이 우선도 1인 식당보다 최대 몇 배 더 잘 뽑힐지 설정합니다.
             1.0이면 우선도 차이를 반영하지 않습니다.
@@ -2291,10 +2299,8 @@
           <p class="setting-desc">3개 이상 뽑을 때만 모든 슬롯이 같은 식당으로 정렬됩니다.</p>
           <div class="admin-percent-row"><input id="jackpotChanceRange" type="range" min="0" max="100" step=".1"><input id="jackpotChanceInput" class="percent-input" type="number" min="0" max="100" step=".1"></div>
           <p class="setting-desc" id="eventChanceNote" style="margin-top:12px">한 추첨에 이벤트는 최대 하나입니다. 등장 확률 합계가 100%를 초과하면 비율대로 정규화됩니다.</p>
-          <a href="./event-preview.html" target="_blank" rel="noopener">이스터에그 테스트</a>
-        </div>
-      </aside>
-    </section>
+</div></div></div>
+<div class="admin-save-bar"><div><b>방 설정 저장</b><small>두 탭의 변경 사항을 함께 저장합니다.</small></div><button class="admin-button danger" id="resetButton">변경 취소</button><button class="admin-button primary" id="saveButton">이 방에 저장</button></div></section>
   </main>
 
   <div class="toast" id="toast"></div>
@@ -2817,11 +2823,29 @@
       await wait(280);
     }
 
-    function chooseEasterEgg(count, config, random = Math.random) {
+    function eventDistribution(count, config) {
       const entries=[["cat",clampPercent(config.catChance,0,100)],["hamster",clampPercent(config.hamsterChance,0,100)],["jackpot",count>=3?clampPercent(config.jackpotChance,0,100):0]];
-      let cursor=random()*Math.max(100,entries.reduce((sum,entry)=>sum+entry[1],0));
+      const total=entries.reduce((sum,entry)=>sum+entry[1],0);
+      const denominator=Math.max(100,total);
+      return {entries,total,denominator,probabilities:entries.map(([event,weight])=>[event,100*weight/denominator]),normal:100*Math.max(0,denominator-total)/denominator};
+    }
+    function chooseEasterEgg(count,config,random=Math.random){
+      const {entries,denominator}=eventDistribution(count,config);
+      let cursor=random()*denominator;
       for(const [event,weight] of entries){if(cursor<weight)return event;cursor-=weight;}
       return null;
+    }
+    function renderEventProbabilities(){
+      const count=Number($("probabilityCount").value);
+      const {probabilities,total,normal}=eventDistribution(count,settings);
+      const labels={cat:"고양이",hamster:"햄스터",jackpot:"잭팟",normal:"일반 추첨"};
+      const colors={cat:"#be854e",hamster:"#7f9b82",jackpot:"#c6a34e",normal:"#a6a099"};
+      const values=[...probabilities,["normal",normal]];
+      $("eventProbabilityBar").innerHTML=values.map(([key,p])=>`<span style="width:${p}%;background:${colors[key]}"></span>`).join("");
+      $("eventProbabilityGrid").innerHTML=values.map(([key,p])=>`<div class="event-prob-cell"><span><i style="background:${colors[key]}"></i>${labels[key]}</span><b>${p.toFixed(2)}%</b></div>`).join("");
+      $("actualChanceNote").textContent="유효 설정 합계 "+Number(total.toFixed(2))+"% · "+(total>100?"100% 초과: 비율대로 정규화":"남은 확률은 일반 추첨")+(count<3?" · 잭팟 제외 (3개 이상 필요)":"");
+      const cat=probabilities[0][1],watch=clampPercent(settings.catWatchChance,0,100)/100;
+      $("actualCatNote").textContent="고양이 세부 확률 (전체 추첨 기준): 구경 "+(cat*watch).toFixed(2)+"% · 냥냥펀치 "+(cat*(1-watch)).toFixed(2)+"%";
     }
 
     function planHamster(pool, slotData, random=Math.random) {
@@ -3108,6 +3132,7 @@
     }
 
     function renderSettings() {
+      renderEventProbabilities();
       for (const key of ["hamsterChance","jackpotChance"]) { const range=document.getElementById(key+"Range"), input=document.getElementById(key+"Input"); if(range&&input){range.value=settings[key];input.value=settings[key];} }
       if (!boostRange || !boostInput) return;
 
@@ -3292,6 +3317,17 @@
     countSelect.addEventListener("change", updateCountOptions);
     pickButton.addEventListener("click", pickRestaurant);
 
+    let activeAdminTab="restaurants";
+    function switchAdminTab(tab,focus=false){
+      activeAdminTab=tab;const restaurant=tab==="restaurants";
+      $("restaurantPanel").hidden=!restaurant;$("probabilityPanel").hidden=restaurant;
+      for(const [id,selected] of [["restaurantTab",restaurant],["probabilityTab",!restaurant]]){const button=$(id);button.setAttribute("aria-selected",String(selected));button.tabIndex=selected?0:-1;if(selected&&focus)button.focus();}
+      if(!restaurant)renderEventProbabilities();
+    }
+    $("restaurantTab").addEventListener("click",()=>switchAdminTab("restaurants"));
+    $("probabilityTab").addEventListener("click",()=>switchAdminTab("probabilities"));
+    $("probabilityCount").addEventListener("change",renderEventProbabilities);
+    document.querySelector(".admin-tabs").addEventListener("keydown",e=>{if(["ArrowLeft","ArrowRight","Home","End"].includes(e.key)){e.preventDefault();switchAdminTab(e.key==="Home"?"restaurants":e.key==="End"?"probabilities":activeAdminTab==="restaurants"?"probabilities":"restaurants",true);}});
     if (saveButton) saveButton.addEventListener("click", publishShared);
     if (resetButton) resetButton.addEventListener("click", () => {
       if (!publishedSnapshot) return;
@@ -3300,7 +3336,7 @@
       settings = saved.settings;
       selectedTypes.clear();
       renderAdmin();
-      showToast("공통 저장값으로 되돌렸습니다");
+      showToast("마지막 방 저장값으로 되돌렸습니다");
     });
 
     if (addRestaurantButton) {
@@ -3366,7 +3402,7 @@
 
     for(const key of ["hamsterChance","jackpotChance"]){
       const range=document.getElementById(key+"Range"), input=document.getElementById(key+"Input");
-      if(range&&input){const change=e=>{settings[key]=clampPercent(e.target.value,0,100);renderSettings();};range.addEventListener("input",change);input.addEventListener("change",change);}
+      if(range&&input){const change=e=>{settings[key]=clampPercent(e.target.value,0,100);renderSettings();};range.addEventListener("input",change);input.addEventListener("input",e=>{if(e.target.value==="")return;settings[key]=clampPercent(e.target.value,0,100);range.value=settings[key];renderEventProbabilities();});input.addEventListener("change",change);}
     }
     initializeShared();
   </script>
@@ -3380,6 +3416,6 @@
       document.head.appendChild(analyticsScript);
     }
   </script>
-  <footer style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:11px;color:#64748b;pointer-events:none">v2.5.4 · 2026.11.27</footer>
+  <footer style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:11px;color:#64748b;pointer-events:none">v2.6.0 · 2026.11.27</footer>
 </body>
 </html>

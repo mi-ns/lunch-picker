@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.6.0 — 2026-11-27
+- Split room administration into restaurant and probability tabs, with a shared sticky save/reset bar preserving drafts across tabs.
+- Live event probabilities for 1–6 recommendations, including normalized odds, normal draws and conditional cat behavior.
+- Event preview matches the main picker palette and uses fictional restaurants; jackpot target is randomly selected per preview run.
+- Existing room settings, draw algorithm and assets unchanged.
+
 ## v2.5.4 — 2026-11-27
 - Restored explicit transparency for the background palette entry in mackerel and tuxedo sprites, fixing black backgrounds without changing visible cat pixels or animation frames.
 - Added asset cache version for the corrected sprites in the main page and previews.
