@@ -1,26 +1,16 @@
 # 인하대 후문 점심 뽑기
 
-인하대 후문 근처 점심 메뉴를 룰렛처럼 추천해 주는 단일 HTML 웹앱입니다.
-테스트 버전임.
+- 운영 사이트: https://lunch-picker-opal.vercel.app/
+- 관리자: https://lunch-picker-opal.vercel.app/?admin=1
+- GitHub Pages는 일반 추첨용으로 유지합니다.
 
-## 바로가기
+## 관리자 설정 (Vercel)
 
-- https://mi-ns.github.io/lunch-picker/
+프로젝트 Settings → Environment Variables에서 Production 환경에 다음 두 값을 직접 등록하고 재배포하세요.
 
-## 주요 기능
+- LUNCH_ADMIN_PASSWORD: 12자 이상인 고유하고 강력한 관리자 비밀번호
+- LUNCH_GITHUB_TOKEN: mi-ns/lunch-picker 저장소만 선택한 fine-grained personal access token, Contents: Read and write 권한. 토큰은 비밀 환경변수로 관리하고 소스 코드나 채팅에 올리지 않습니다.
 
-- 여러 식당을 한 번에 랜덤 추천
-- 같은 식당이 중복으로 뽑히지 않도록 처리
-- 식당 종류, 대표 메뉴, 우선도 기반 추천
-- 룰렛 스타일의 추천 화면
-- 모바일에서도 접속 가능한 GitHub Pages 배포
-- 낮은 확률로 메뉴가 바뀔수도..?
-- 바로가기 주소 뒤에 ?admin=2195 붙이면 관리자 페이지로 이동
-
-## 메모
-
-이 프로젝트는 별도 서버 없이 GitHub Pages에서 동작합니다. `config.json`의 식당 목록과 확률을 모든 브라우저가 접속 및 추첨 시 읽습니다. 기존 브라우저 로컬 설정은 사용하지 않습니다.
-
-관리자 화면의 변경 내용은 '전체 사용자에게 저장'을 누르기 전에는 게시되지 않습니다. 게시에는 이 저장소에만 Contents 읽기/쓰기 권한이 있는 GitHub fine-grained 토큰이 필요하며 토큰은 저장하지 않습니다. 관리자 URL 번호는 인증 수단이 아닙니다. GitHub에서 config.json을 직접 수정하는 방법도 가능합니다.
+이후 관리자 페이지에서 비밀번호로 로그인하면 세션은 최대 8시간 유지되며, 공통 설정 저장 시 별도 GitHub 토큰 입력이 필요 없습니다. 설정 저장은 GitHub config.json에 커밋으로 기록됩니다. 일반 사용자는 GitHub의 공통 설정을 읽으며 CDN 반영 지연이 있을 수 있습니다. 이전 설정에 충돌하면 새로고침 후 다시 편집합니다. 비밀번호나 토큰을 변경하면 재배포가 필요합니다.
 
 신규 식당 후보의 영업 여부와 지점명은 별도 확인이 필요합니다.

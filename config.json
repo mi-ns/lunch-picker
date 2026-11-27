@@ -243,7 +243,6 @@
   ],
   "settings": {
     "maxBoost": 1.7,
-    "adminCode": "2195",
     "catChance": 5,
     "catWatchChance": 35,
     "moveBackProb": 20,

@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.5.0 — 2026-11-27
+- Added a visible administrator link and password login with signed, HttpOnly session cookie.
+- Admin writes now use a Vercel server function and GitHub credential stored in server environment variables; browser never receives GitHub token.
+- Removed public URL code as authentication; previous admin links open login. Requires environment setup before use.
+- All 40 restaurant candidates and probability values preserved.
+
+## v1.4.2 — 2026-11-27
+- Added Poram, confirmed Leo Pub; 40 restaurants.
+
 ## v1.4.1 — 2026-11-27
 - Added Tanpopo, Sinjeon, Yeopdduk and Leo Pub (pizza candidate).
 - Removed Park Jihye sundae soup and Unbanmi (incorrect match).

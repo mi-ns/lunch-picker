@@ -2065,6 +2065,7 @@
         height: 54px;
       }
     }
+      [hidden] { display: none !important; }
   </style>
 </head>
 <body>
@@ -2093,6 +2094,7 @@
       </section>
 
       <button class="pick-button" id="pickButton">랜덤으로 고르기</button>
+      <div style="position:relative;z-index:1;margin-top:18px;text-align:center"><a id="adminLink" href="?admin=1" style="font-size:12px;color:#64748b;text-decoration:none">관리자 페이지</a></div>
     </section>
   </main>
 
@@ -2101,12 +2103,22 @@
       <div class="admin-title">
         <div class="badge">관리자 화면</div>
         <h1>후문 식당 목록 관리</h1>
-        <p>식당 목록과 모든 확률은 전체 사용자에게 공통 적용됩니다. 수정 후 전체 사용자에게 저장을 누르세요. 관리자 주소는 화면 진입용이며 실제 저장에는 GitHub 권한이 필요합니다.</p>
+        <p>식당 목록과 모든 확률은 전체 사용자에게 공통 적용됩니다. 수정 후 전체 사용자에게 저장을 누르세요. 관리자 로그인 후 공통 목록과 확률을 수정할 수 있습니다.</p>
       </div>
-      <a class="view-link" id="viewLink" href="inha_backgate_lunch_picker_slot_cat_fixed2.html">일반 화면으로 보기</a>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="admin-button" id="adminLogout" hidden style="padding:0 16px">로그아웃</button><a class="view-link" id="viewLink" href="./">일반 화면으로 보기</a></div>
     </header>
 
-    <section class="admin-grid">
+    <section class="admin-card" id="adminLogin" style="max-width:430px;margin:36px auto" hidden>
+      <h2>관리자 로그인</h2>
+      <p class="admin-note">관리자 비밀번호를 입력하면 공통 설정을 수정할 수 있습니다.</p>
+      <form id="adminLoginForm">
+        <label for="adminPassword" class="setting-title">비밀번호</label>
+        <input id="adminPassword" class="admin-code-input" type="password" required maxlength="256" autocomplete="current-password" style="margin:8px 0 12px" />
+        <button class="admin-button primary" type="submit" id="adminLoginButton" style="width:100%">로그인</button>
+      </form>
+      <p id="adminLoginMessage" class="admin-note" role="status" aria-live="polite"></p>
+    </section>
+    <section class="admin-grid" id="adminControls" hidden>
       <div class="admin-card">
         <h2>식당 목록</h2>
         <p class="admin-note">
@@ -2182,20 +2194,6 @@
               <b id="weightP3">1.70배</b>
             </div>
           </div>
-        </div>
-
-        <div class="setting-box">
-          <h2 class="setting-title">관리자 번호</h2>
-          <p class="setting-desc">
-            관리자 화면 접속 번호를 변경합니다. 변경 후에는 새 번호를 주소 뒤에 붙여 접속합니다.
-          </p>
-
-          <div class="admin-code-row">
-            <input id="adminCodeInput" class="admin-code-input" type="text" maxlength="24" />
-            <button id="adminCodeButton" class="admin-code-button">변경</button>
-          </div>
-
-          <div class="admin-url-preview" id="adminUrlPreview"></div>
         </div>
 
         <div class="setting-box">
@@ -2289,7 +2287,7 @@
 
     const STORAGE_KEY = "inha-backgate-lunch-restaurants-v1";
     const SETTINGS_KEY = "inha-backgate-lunch-picker-settings-v1";
-    const DEFAULT_ADMIN_CODE = "2195";
+
 
     const body = document.body;
     const chips = document.getElementById("chips");
@@ -2311,9 +2309,6 @@
     const weightP1 = document.getElementById("weightP1");
     const weightP2 = document.getElementById("weightP2");
     const weightP3 = document.getElementById("weightP3");
-    const adminCodeInput = document.getElementById("adminCodeInput");
-    const adminCodeButton = document.getElementById("adminCodeButton");
-    const adminUrlPreview = document.getElementById("adminUrlPreview");
     const viewLink = document.getElementById("viewLink");
     const catChanceRange = document.getElementById("catChanceRange");
     const catChanceInput = document.getElementById("catChanceInput");
@@ -2331,26 +2326,41 @@
 
     let restaurants = defaultRestaurants;
     let settings = getDefaultSettings();
-    let isAdmin = false;
+    const onVercel = location.hostname.endsWith(".vercel.app");
+    const isAdmin = new URLSearchParams(location.search).has("admin");
     let selectedTypes = new Set();
-
-    if (isAdmin) {
-      body.classList.add("admin-page");
-    }
-
-    if (viewLink) {
-      viewLink.href = location.pathname.split("/").pop() || "index.html";
-    }
-
-    const configApi = "https://api.github.com/repos/mi-ns/lunch-picker/contents/config.json";
+    const adminLogin = document.getElementById("adminLogin");
+    const adminControls = document.getElementById("adminControls");
+    const adminLoginMessage = document.getElementById("adminLoginMessage");
+    const adminLoginForm = document.getElementById("adminLoginForm");
+    const adminLoginButton = document.getElementById("adminLoginButton");
+    const adminPassword = document.getElementById("adminPassword");
+    const adminLogout = document.getElementById("adminLogout");
+    const adminLink = document.getElementById("adminLink");
+    if (!onVercel) adminLink.href = "https://lunch-picker-opal.vercel.app/?admin=1";
+    if (isAdmin && !onVercel) location.replace(adminLink.href);
+    body.classList.toggle("admin-page",isAdmin);
+    if (viewLink) viewLink.href = "./";
     const configRaw = "https://raw.githubusercontent.com/mi-ns/lunch-picker/main/config.json";
     let configReady = false;
     let publishedSnapshot = null;
+    let publishedSha = null;
     async function fetchShared() {
       const response = await fetch(configRaw + "?t=" + Date.now(), {cache:"no-store"});
       if (!response.ok) throw Error("공통 설정을 읽을 수 없습니다");
       const data = await response.json();
       if (!Array.isArray(data.restaurants) || !data.restaurants.length) throw Error("식당 목록 오류");
+      return data;
+    }
+    async function adminRequest(action, payload) {
+      const response = await fetch("/api/admin?action=" + encodeURIComponent(action), {
+        method: payload === undefined ? "GET" : "POST",
+        credentials: "same-origin", cache: "no-store",
+        ...(payload === undefined ? {} : {headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)})
+      });
+      let data;
+      try { data = await response.json(); } catch { throw Error("관리자 서버 연결을 확인하세요."); }
+      if (!response.ok) { const error = Error(data.error || "관리자 요청 실패"); error.status = response.status; throw error; }
       return data;
     }
     function applyShared(data) {
@@ -2362,39 +2372,71 @@
     }
     function saveRestaurants() {}
     function saveSettings() {}
+    function showAdminLogin(message = "") {
+      configReady = false;
+      adminControls.hidden = true;
+      adminLogout.hidden = true;
+      adminLogin.hidden = false;
+      adminLoginMessage.textContent = message;
+      adminLoginButton.disabled = false;
+    }
+    async function loadAdmin() {
+      const result = await adminRequest("config");
+      applyShared(result.config);
+      publishedSha = result.sha;
+      renderAdmin();
+      adminLogin.hidden = true;
+      adminControls.hidden = false;
+      adminLogout.hidden = false;
+    }
     async function publishShared() {
       if (!configReady || !isAdmin) return;
       const nextRestaurants = parseEditor();
-      const token = prompt("GitHub fine-grained 토큰을 입력하세요 (lunch-picker 저장소 Contents 읽기/쓰기 권한). 토큰은 저장하지 않습니다.");
-      if (!token) return;
+      if (!nextRestaurants.length) { showToast("식당을 한 곳 이상 등록하세요"); return; }
       saveButton.disabled = true;
       try {
-        const headers = {Authorization:"Bearer " + token.trim(), Accept:"application/vnd.github+json"};
-        const previous = await fetch(configApi + "?ref=main", {headers,cache:"no-store"});
-        if (!previous.ok) throw Error("GitHub 권한 또는 연결 오류");
-        const file = await previous.json();
-        const current = JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(file.content.replace(/\s/g,"")), c=>c.charCodeAt(0))));
-        const normalizedCurrent = JSON.stringify({restaurants:current.restaurants.map(item=>({...item,priority:Math.max(1,Math.min(3,Number(item.priority||2)))})),settings:normalizeSettings(current.settings)});
-        if (normalizedCurrent !== publishedSnapshot) throw Error("다른 관리자가 설정을 수정했습니다. 새로고침 후 다시 편집하세요.");
-        const payload = JSON.stringify({restaurants:nextRestaurants,settings},null,2)+"\n";
-        const bytes = new TextEncoder().encode(payload);
-        const content = btoa(Array.from(bytes,b=>String.fromCharCode(b)).join(""));
-        const response = await fetch(configApi,{method:"PUT",headers:{...headers,"Content-Type":"application/json"},body:JSON.stringify({message:"Update shared lunch settings",content,sha:file.sha,branch:"main"})});
-        if (!response.ok) throw Error("공통 설정 저장 실패 ("+response.status+")");
-        applyShared({restaurants:nextRestaurants,settings});
+        const result = await adminRequest("save", {restaurants:nextRestaurants,settings,sha:publishedSha});
+        applyShared(result.config);
+        publishedSha = result.sha;
         renderAdmin();
         showToast("전체 사용자 공통 설정을 저장했습니다");
-      } catch(error) { showToast(error.message); }
-      finally { saveButton.disabled = false; }
+      } catch(error) {
+        if (error.status === 401) showAdminLogin("로그인 시간이 만료되었습니다. 다시 로그인하세요.");
+        else showToast(error.message);
+      } finally { saveButton.disabled = false; }
     }
+    adminLoginForm.addEventListener("submit", async event => {
+      event.preventDefault();
+      adminLoginButton.disabled = true;
+      adminLoginMessage.textContent = "";
+      try {
+        await adminRequest("login",{password:adminPassword.value});
+        adminPassword.value = "";
+        await loadAdmin();
+      } catch(error) { adminPassword.value = ""; showAdminLogin(error.message); }
+      finally { adminLoginButton.disabled = false; }
+    });
+    adminLogout.addEventListener("click",async () => {
+      try { await adminRequest("logout",{}); showAdminLogin("로그아웃되었습니다."); }
+      catch(error) { showToast(error.message); }
+    });
     async function initializeShared() {
+      if (isAdmin) {
+        if (!onVercel) return;
+        showAdminLogin("관리자 서버 확인 중");
+        adminLoginButton.disabled = true;
+        try {
+          const status = await adminRequest("session");
+          if (!status.configured) { showAdminLogin("서버 관리자 설정이 아직 완료되지 않았습니다."); adminLoginButton.disabled = true; }
+          else if (status.authenticated) await loadAdmin();
+          else showAdminLogin();
+        } catch(error) { showAdminLogin(error.message); }
+        return;
+      }
       pickButton.disabled = true;
       try {
         applyShared(await fetchShared());
-        isAdmin = new URLSearchParams(location.search).get("admin") === String(settings.adminCode);
-        body.classList.toggle("admin-page",isAdmin);
         renderUser();
-        renderAdmin();
         pickButton.textContent = "점심 뽑기";
       } catch(error) {
         configReady = false;
@@ -2406,7 +2448,6 @@
     function getDefaultSettings() {
       return {
         maxBoost: 1.7,
-        adminCode: DEFAULT_ADMIN_CODE,
         catChance: 5,
         catWatchChance: 35,
         moveBackProb: 20,
@@ -2419,7 +2460,6 @@
       const defaults = getDefaultSettings();
       return {
         maxBoost: clampBoost(value.maxBoost ?? defaults.maxBoost),
-        adminCode: normalizeAdminCode(value.adminCode || defaults.adminCode),
         catChance: clampPercent(value.catChance ?? defaults.catChance, 0, 100),
         catWatchChance: clampPercent(value.catWatchChance ?? defaults.catWatchChance, 0, 100),
         moveBackProb: clampPercent(value.moveBackProb ?? defaults.moveBackProb, 0, 100),
@@ -2436,10 +2476,7 @@
       return Math.max(1, Math.min(3, Number(value) || 1.7));
     }
 
-    function normalizeAdminCode(value) {
-      const code = String(value || "").replace(/[^0-9A-Za-z_-]/g, "").slice(0, 24);
-      return code || DEFAULT_ADMIN_CODE;
-    }
+
 
     function getTypes() {
       return [...new Set(restaurants.map(item => item.type).filter(Boolean))];
@@ -3010,11 +3047,7 @@
       weightP2.textContent = `${midBoost.toFixed(2)}배`;
       weightP3.textContent = `${maxBoost.toFixed(2)}배`;
 
-      if (adminCodeInput && adminUrlPreview) {
-        const code = String(settings.adminCode || DEFAULT_ADMIN_CODE);
-        adminCodeInput.value = code;
-        adminUrlPreview.textContent = `${location.pathname.split("/").pop() || "index.html"}?admin=${code}`;
-      }
+
 
       if (catChanceRange && catChanceInput) {
         const chance = clampPercent(settings.catChance, 0, 100);
@@ -3044,19 +3077,6 @@
       settings.maxBoost = clampBoost(value);
       saveSettings();
       renderSettings();
-    }
-
-    function updateAdminCode() {
-      if (!adminCodeInput) return;
-
-      const nextCode = normalizeAdminCode(adminCodeInput.value);
-      settings.adminCode = nextCode;
-      saveSettings();
-      renderSettings();
-
-      const fileName = location.pathname.split("/").pop() || "index.html";
-      showToast("변경 내용을 전체 사용자에게 저장해야 적용됩니다");
-      adminUrlPreview.textContent = `${fileName}?admin=${nextCode}`;
     }
 
     function updateCatChance(value) {
@@ -3138,7 +3158,7 @@
         };
       }).filter(item => item.name);
 
-      return parsed.length ? parsed : defaultRestaurants;
+      return parsed;
     }
 
     function showToast(message) {
@@ -3234,14 +3254,6 @@
       });
     }
 
-    if (adminCodeButton && adminCodeInput) {
-      adminCodeButton.addEventListener("click", updateAdminCode);
-
-      adminCodeInput.addEventListener("keydown", event => {
-        if (event.key === "Enter") updateAdminCode();
-      });
-    }
-
     if (catChanceRange && catChanceInput) {
       catChanceRange.addEventListener("input", event => {
         updateCatChance(event.target.value);
@@ -3290,6 +3302,6 @@
       document.head.appendChild(analyticsScript);
     }
   </script>
-  <footer style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:11px;color:#64748b;pointer-events:none">v1.4.1 · 2026.11.27</footer>
+  <footer style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:11px;color:#64748b;pointer-events:none">v1.5.0 · 2026.11.27</footer>
 </body>
 </html>
