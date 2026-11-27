@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.4.1 — 2026-11-27
+- Added Tanpopo, Sinjeon, Yeopdduk and Leo Pub (pizza candidate).
+- Removed Park Jihye sundae soup and Unbanmi (incorrect match).
+- Total 39 candidates; new Vietnamese restaurant beside Budaeok remains unidentified. Pizza shop identity needs confirmation.
+- Existing weights and probability settings unchanged.
+
 ## v1.4.0 — 2026-11-27
 - Curated 37 restaurant candidates around the Inha University back gate, using the earlier shortlist and user additions.
 - Removed Inhabanjum and Inhagak; added Jeokseongru, Tanghuakunfu and Bobaebanjum.
