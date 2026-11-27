@@ -1,5 +1,10 @@
 # Changelog
 
+## v2.1.0 — 2026-11-27
+- Replaced geometric cat animation with the approved 16-frame pixel-art kitten sprite, transparent background, walk/peek/paw strike/exit animation.
+- Synchronized actual reroll with the strike; preserved cat probabilities and room settings. Original CSS cat remains a fallback if sprite fails.
+- Added separate cat-preview.html for testing without changing probabilities.
+
 ## v2.0.0 — 2026-11-27
 - Public read-only picker plus isolated invite-code rooms, per-room PIN sessions, Redis-backed settings, shared rate limits and last 20 versions with restore.
 - Server validates length, allowed characters, links, HTML, duplicate names and priority/probability bounds.

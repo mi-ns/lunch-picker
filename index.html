@@ -2071,6 +2071,9 @@
     .room-actions{margin-top:9px;justify-content:flex-end;flex-wrap:wrap}.room-text,.room-actions a{border:0;background:none;padding:5px 0;color:var(--muted);font-size:12px;text-decoration:underline;text-underline-offset:3px}
     .room-form{display:grid;gap:7px;margin-top:13px}.room-form label{font-size:12px;font-weight:800}.room-inline input{min-width:0;flex:1}.room-inline button{padding:0 14px;flex-shrink:0}.room-strip details{margin-top:12px}.room-strip summary{cursor:pointer}.room-strip .admin-note{margin-bottom:0}
     #roomHistory{display:grid;gap:8px}.history-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px;border:1px solid var(--line);border-radius:10px;font-size:12px}.history-row button{padding:6px 9px;background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:8px;font-size:12px}.history-row button:disabled{opacity:.4;cursor:default}
+    .cat-sprite-canvas { position:absolute; display:block; pointer-events:none; image-rendering:pixelated; z-index:12; filter:drop-shadow(0 3px 2px #0004); }
+    .slot-window.cat-impact { animation:catImpact .35s ease-out both; }
+    @keyframes catImpact {0%,100%{transform:translateY(0)}18%{transform:translateY(7px) rotate(-.7deg);filter:brightness(1.2)}44%{transform:translateY(-3px)}72%{transform:translateY(1px)}}
   </style>
 </head>
 <body>
@@ -2276,6 +2279,7 @@
 
   <div class="toast" id="toast"></div>
 
+  <script src="./assets/cat-motion.js"></script>
   <script>
     const defaultRestaurants = [
       { name: "킹콩순두부", type: "한식", menu: "순두부찌개", priority: 3 },
@@ -2796,19 +2800,15 @@
       }
 
       await wait(320);
-      await runCatVisit(slotWindow, true);
-
-      if (status) {
-        status.textContent = "무언가가 하나를 툭 쳤습니다";
-      }
-
-      await wait(90);
-      await animateTo(
-        track,
-        nextIndex * itemHeight,
-        980,
-        "cubic-bezier(.08,.86,.12,1)"
-      );
+      await runCatVisit(slotWindow, true, async () => {
+        if (status) status.textContent = "무언가가 하나를 툭 쳤습니다";
+        await animateTo(
+          track,
+          nextIndex * itemHeight,
+          820,
+          "cubic-bezier(.08,.86,.12,1)"
+        );
+      });
 
       slotData[targetIndex].finalItem = nextItem;
 
@@ -2879,7 +2879,24 @@
       }
     }
 
-    function runCatVisit(slotWindow, shouldTap = true) {
+    async function runCatVisit(slotWindow, shouldTap = true, onImpact = () => {}) {
+      if (!catStage) { if (shouldTap) await onImpact(); return; }
+      let impacted = false;
+      const impact = () => { if (!impacted) { impacted = true; return onImpact(); } };
+      try {
+        if (window.LunchCat) {
+          await window.LunchCat.visit(catStage, slotWindow, shouldTap, impact);
+          return;
+        }
+      } catch (error) {
+        console.warn("Cat sprite unavailable", error);
+        if (impacted) return;
+      }
+      await runLegacyCatVisit(slotWindow, shouldTap);
+      if (shouldTap) await impact();
+    }
+
+    function runLegacyCatVisit(slotWindow, shouldTap = true) {
       return new Promise(resolve => {
         if (!catStage) {
           resolve();
@@ -3268,6 +3285,6 @@
       document.head.appendChild(analyticsScript);
     }
   </script>
-  <footer style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:11px;color:#64748b;pointer-events:none">v2.0.0 · 2026.11.27</footer>
+  <footer style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:11px;color:#64748b;pointer-events:none">v2.1.0 · 2026.11.27</footer>
 </body>
 </html>
