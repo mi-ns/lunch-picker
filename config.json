@@ -233,6 +233,12 @@
       "type": "아시안",
       "menu": "쌀국수, 분짜",
       "priority": 2
+    },
+    {
+      "name": "포람",
+      "type": "아시안",
+      "menu": "쌀국수 등 베트남 음식",
+      "priority": 2
     }
   ],
   "settings": {
