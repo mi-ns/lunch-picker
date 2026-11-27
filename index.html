@@ -2863,20 +2863,16 @@
     async function runJackpot(pool, slotData, tracks, windows, status) {
       const winner=sample(pool,1)[0];
       if(!winner||slotData.length<3)return;
-      const spin=async()=>{
-        const targets=tracks.map(track=>({track,index:appendRerollItems(track,pool,winner),height:getSlotItemHeight(track)}));
+      const targets=tracks.map(track=>({track,index:appendRerollItems(track,pool,winner),height:getSlotItemHeight(track)}));
+      const spin=async(onLock=()=>{})=>{
         await Promise.all(targets.map(async({track,index,height},i)=>{
-          await animateTo(track,index*height,1180,"cubic-bezier(.13,.72,.19,1)");
+          await animateTo(track,index*height,820+i*530,"cubic-bezier(.16,.65,.23,1)");
           slotData[i].finalItem=winner;
+          onLock(i);
         }));
       };
-      if(window.LunchJackpot){
-        await window.LunchJackpot.run({stage:resultBox,windows,status,spin});
-      }else{
-        await spin();windows.forEach(w=>w.classList.add("jackpot-window"));
-        if(status){status.textContent="JACKPOT!";status.classList.add("jackpot-status");}
-        confetti();
-      }
+      if(window.LunchJackpot)await window.LunchJackpot.run({stage:resultBox,windows,status,spin});
+      else{await spin(i=>windows[i]?.classList.add("jackpot-window"));if(status)status.textContent="JACKPOT!";confetti();}
     }
 
     async function runCatSurprise(pool, slotData, tracks, windows, status) {
@@ -3383,6 +3379,6 @@
       document.head.appendChild(analyticsScript);
     }
   </script>
-  <footer style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:11px;color:#64748b;pointer-events:none">v2.4.0 · 2026.11.27</footer>
+  <footer style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:11px;color:#64748b;pointer-events:none">v2.5.0 · 2026.11.27</footer>
 </body>
 </html>

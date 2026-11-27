@@ -1,5 +1,10 @@
 # Changelog
 
+## v2.5.0 — 2026-11-27
+- Jackpot reels stop individually from top to bottom, with an ascending chime at each lock and fanfare only after the final match.
+- Revised three coat sprites with unstriped tuxedo and patch-based calico, and cooler tabby markings; original 16-frame motion retained.
+- Preview uses the same lock sequence. No probability or room configuration changes.
+
 ## v2.4.0 — 2026-11-27
 - Added shared casino-inspired jackpot buildup: five rising original synthesized chimes, sequential gold slot lights, synchronized reels, gold marquee and celebratory burst.
 - Added browser-local sound toggle; audio unlocks on user interaction, and unavailable audio never blocks the draw. Reduced-motion fallback included.

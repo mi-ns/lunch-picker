@@ -13,8 +13,8 @@ function tone(hz,offset,duration,volume=.045,type="triangle"){
  try{const t=context.currentTime+Math.max(0,offset),osc=context.createOscillator(),gain=context.createGain();osc.type=type;osc.frequency.value=hz;gain.gain.setValueAtTime(.0001,t);gain.gain.exponentialRampToValueAtTime(volume,t+.012);gain.gain.exponentialRampToValueAtTime(.0001,t+duration);osc.connect(gain);gain.connect(context.destination);osc.start(t);osc.stop(t+duration+.02);}catch{}
 }
 function beat(i){
- const notes=[392,494,587,698,880];
- tone(notes[i],0,.18,.042);tone(notes[i]*2,0,.12,.014,"sine");
+ const notes=[392,494,587,698,880,1046.5];
+ const note=notes[Math.min(i,notes.length-1)];tone(note,0,.23,.052);tone(note*2,0,.12,.014,"sine");
 }
 function fanfare(){
  // Original short synthesized flourish; no external audio or licensed recordings.
@@ -41,19 +41,23 @@ async function run({stage,windows,status,spin}){
  const frame=buildMarquee(stage),bulbs=[...frame.children];stage.classList.add("j-show");
  let overlay=null;
  try{
-  const timings=[360,320,270,235,210];
-  for(let i=0;i<timings.length;i++){
-    beat(i);
-    bulbs.forEach((bulb,j)=>bulb.classList.toggle("lit",j%3===i%3));
-    windows.forEach((w,j)=>w.classList.toggle("j-focus",j===Math.min(windows.length-1,Math.floor(i*windows.length/5))));
-    if(status)status.textContent="● ".repeat(i+1).trim();
-    await wait(reduced?90:timings[i]);
-  }
-  windows.forEach(w=>{w.classList.remove("j-focus");w.classList.add("j-spin");});
-  bulbs.forEach(b=>b.classList.add("lit"));
+  bulbs.forEach((bulb,j)=>bulb.classList.toggle("lit",j%3===0));
+  await wait(reduced?90:350);
+  windows.forEach(w=>w.classList.add("j-spin"));
   if(status)status.textContent="…";
-  await spin();
-  windows.forEach(w=>{w.classList.remove("j-spin","j-await");w.classList.add("j-won");});
+  const locked=new Set();
+  const onLock=i=>{
+    if(locked.has(i)||!windows[i])return;
+    locked.add(i);
+    windows[i].classList.remove("j-spin","j-await","j-focus");
+    windows[i].classList.add("j-won");
+    beat(i);
+    bulbs.forEach((bulb,j)=>bulb.classList.toggle("lit",locked.size===windows.length||j%3===i%3));
+    if(status)status.textContent="● ".repeat(locked.size).trim();
+  };
+  await spin(onLock);
+  windows.forEach((w,i)=>onLock(i));
+  await wait(reduced?90:260);
   if(status){status.classList.remove("j-count");status.classList.add("j-final-status");status.textContent="JACKPOT!";}
   fanfare();
   overlay=document.createElement("div");overlay.className="j-message";overlay.setAttribute("aria-hidden","true");const title=document.createElement("div");title.className="j-title";title.textContent="JACKPOT!";overlay.append(title);stage.append(overlay);
