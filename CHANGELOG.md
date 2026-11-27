@@ -1,5 +1,10 @@
 # Changelog
 
+## v2.5.3 — 2026-11-27
+- Simplified public README and separated operator-only configuration documentation.
+- Explained invite codes, group-specific restaurant lists and draw weights, and separate administrator PIN authentication in the README and room lobby.
+- No changes to event probabilities, database configuration or existing room data.
+
 ## v2.5.2 — 2026-11-27
 - Replaced mackerel and tuxedo assets with the approved revised sprites, aligned to the existing 16-frame grid.
 - Warm gray-brown tabby palette, consistent pointed tuxedo facial blaze, pink inner ears and transparent backgrounds.
