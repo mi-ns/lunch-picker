@@ -27,9 +27,12 @@ async function visit({stage,windows=[],targetIndices=[],onRun=()=>{}}){
  if(!stage||window.matchMedia("(prefers-reduced-motion: reduce)").matches){for(let i=0;i<windows.length;i++)if(targets.has(i))await onRun(i);return;}
  const bounds=stage.getBoundingClientRect();
  const width=Math.min(66,Math.max(42,bounds.width*.145)),height=width*H/W;
+ const first=windows[0].getBoundingClientRect();
+ // One fixed vertical lane for the entire visit, even when slot widths differ.
+ const laneX=clamp(first.left-bounds.left+first.width*.72-width/2,2,Math.max(2,bounds.width-width-2));
  const anchors=windows.map(win=>{
    const q=win.getBoundingClientRect();
-   return {x:clamp(q.left-bounds.left+q.width*.72-width/2,2,Math.max(2,bounds.width-width-2)),y:q.top-bounds.top-height*.86};
+   return {x:laneX,y:q.top-bounds.top-height*.86};
  });
  const canvas=document.createElement("canvas");canvas.width=W;canvas.height=H;canvas.className="hamster-sprite-canvas";canvas.setAttribute("aria-hidden","true");
  Object.assign(canvas.style,{position:"absolute",width:width+"px",height:height+"px",pointerEvents:"none",imageRendering:"pixelated",zIndex:"12",left:anchors[0].x+"px",top:-height+"px"});
@@ -38,8 +41,8 @@ async function visit({stage,windows=[],targetIndices=[],onRun=()=>{}}){
  stage.appendChild(canvas);
  let pos={x:anchors[0].x,y:-height},phase=0;
  function paint(point,running=false,jump=false){
-   canvas.style.left=point.x+"px";canvas.style.top=point.y+"px";
-   canvas.style.transform=jump?"rotate(7deg)":"none";
+   canvas.style.left=laneX+"px";canvas.style.top=point.y+"px";
+   canvas.style.transform=jump?"scale(.93,1.07)":"none";
    draw(ctx,phase,running,false);
  }
  function tween(ms,fn){
@@ -52,9 +55,9 @@ async function visit({stage,windows=[],targetIndices=[],onRun=()=>{}}){
  async function move(to,duration,arc=0){
    const from={...pos};
    await tween(duration,(t,elapsed)=>{
-     const q=smooth(t);
+     const q=arc?t*t:smooth(t);
      phase=elapsed/80;
-     paint({x:from.x+(to.x-from.x)*q+Math.sin(Math.PI*t)*(arc?8:0),y:from.y+(to.y-from.y)*q-Math.sin(Math.PI*t)*arc},false,arc>0&&t>.1&&t<.9);
+     paint({x:laneX,y:from.y+(to.y-from.y)*q},false,arc>0&&t>.1&&t<.9);
    });
    pos=to;
  }
@@ -66,16 +69,16 @@ async function visit({stage,windows=[],targetIndices=[],onRun=()=>{}}){
        paint(anchor);await tween(100,()=>paint(anchor));
        const reroll=Promise.resolve().then(()=>onRun(i));reroll.catch(()=>{});
        await Promise.all([reroll,tween(1080,(t,elapsed)=>{
-         phase=elapsed/35;paint({x:anchor.x+Math.sin(phase)*1.1,y:anchor.y},true);
+         phase=elapsed/35;paint(anchor,true);
        })]);
        paint(anchor);
      }else{
        // Fly past the slot without touching its top or starting a reroll.
-       const flyby={x:clamp(anchor.x+width*.65,2,Math.max(2,bounds.width-width-2)),y:anchor.y+height*.65};
+       const flyby={x:laneX,y:Math.max(pos.y,Math.min(anchor.y+height*.65,anchors[i+1]?.y??Infinity))};
        await move(flyby,i===0?280:240,18);
      }
    }
-   await move({x:clamp(pos.x+10,2,Math.max(2,bounds.width-width-2)),y:bounds.height+height+8},380,14);
+   await move({x:laneX,y:bounds.height+height+8},380,14);
  }finally{canvas.remove();}
 }
 window.LunchHamster={visit,draw};

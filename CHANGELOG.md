@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.3.1 — 2026-11-27
+- Hamster moves strictly top-to-bottom along one fixed vertical lane, with no sideways drift during skips, running, or exit.
+- Non-target slots retain jump/drop animation and unchanged results. No probability or data changes.
+
 ## v2.3.0 — 2026-11-27
 - Four separately rendered 16-frame coat sprites: original ginger, mackerel tabby, charcoal tuxedo with white markings, calico patches. Exact original motion and silhouette retained; no runtime recoloring.
 - Smaller hamster enters from above and visits slots in order. Runs only on randomly selected slots, jumps past the others, exits below. Preserves unique results; no reroll when no unused restaurants exist.
