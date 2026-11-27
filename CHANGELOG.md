@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.5.1 — 2026-11-27
+- Support six-digit numeric administrator PIN from server-only environment variable; longer passwords still supported.
+- Added best-effort per-instance login throttling (5 attempts per 15 minutes), not a shared rate limit.
+- No changes to cat animation pending user review.
+
 ## v1.5.0 — 2026-11-27
 - Added a visible administrator link and password login with signed, HttpOnly session cookie.
 - Admin writes now use a Vercel server function and GitHub credential stored in server environment variables; browser never receives GitHub token.
