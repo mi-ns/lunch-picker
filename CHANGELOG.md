@@ -1,5 +1,10 @@
 # Changelog
 
+## v2.5.2 — 2026-11-27
+- Replaced mackerel and tuxedo assets with the approved revised sprites, aligned to the existing 16-frame grid.
+- Warm gray-brown tabby palette, consistent pointed tuxedo facial blaze, pink inner ears and transparent backgrounds.
+- Existing event timing, probabilities and room configuration unchanged.
+
 ## v2.5.1 — 2026-11-27
 - Warm gray-brown mackerel coat instead of cool gray.
 - Tuxedo coat has black legs and reduced ivory chest and muzzle patches, matching approved color direction.
