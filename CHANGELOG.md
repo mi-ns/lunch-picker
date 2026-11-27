@@ -1,5 +1,10 @@
 # Changelog
 
+## v2.0.0 — 2026-11-27
+- Public read-only picker plus isolated invite-code rooms, per-room PIN sessions, Redis-backed settings, shared rate limits and last 20 versions with restore.
+- Server validates length, allowed characters, links, HTML, duplicate names and priority/probability bounds.
+- Existing 40 restaurant default and roulette/cat retained. Room features require Redis setup. No global web admin writes; no GitHub token required.
+
 ## v1.5.1 — 2026-11-27
 - Support six-digit numeric administrator PIN from server-only environment variable; longer passwords still supported.
 - Added best-effort per-instance login throttling (5 attempts per 15 minutes), not a shared rate limit.
